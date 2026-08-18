@@ -1,7 +1,7 @@
 /* 经典怀旧游戏 - 移动端样式 */
 
 :root {
-    --control-margin: 30px;
+    --side-margin: 44px;
     --primary: #6366f1;
     --primary-dark: #4f46e5;
     --bg-dark: #0f172a;
@@ -240,8 +240,8 @@ html, body {
 
 .joystick-area {
     position: fixed;
-    bottom: calc(var(--control-margin) + env(safe-area-inset-bottom));
-    left: calc(var(--control-margin) + env(safe-area-inset-left));
+    bottom: calc(30px + env(safe-area-inset-bottom));
+    left: calc(var(--side-margin) + env(safe-area-inset-left));
     width: clamp(150px, 18vw, 220px);
     height: clamp(150px, 18vw, 220px);
     z-index: 200;
@@ -307,8 +307,8 @@ html, body {
 
 .action-area {
     position: fixed;
-    bottom: calc(var(--control-margin) + env(safe-area-inset-bottom));
-    right: calc(var(--control-margin) + env(safe-area-inset-right));
+    bottom: calc(30px + env(safe-area-inset-bottom));
+    right: calc(var(--side-margin) + env(safe-area-inset-right));
     width: clamp(270px, 28vw, 380px);
     height: clamp(180px, 20vw, 240px);
     z-index: 200;
@@ -354,7 +354,7 @@ html, body {
 .system-btns {
     position: fixed;
     left: 50%;
-    bottom: calc(var(--control-margin) + env(safe-area-inset-bottom));
+    bottom: calc(24px + env(safe-area-inset-bottom));
     transform: translateX(-50%);
     display: flex;
     gap: 10px;
@@ -380,7 +380,7 @@ html, body {
 .settings-panel {
     position: fixed;
     top: 56px;
-    right: var(--control-margin);
+    right: 18px;
     z-index: 260;
     width: min(260px, calc(100vw - 32px));
     padding: 16px;
@@ -499,17 +499,17 @@ html, body {
     }
 
     .joystick-area {
-        bottom: calc(var(--control-margin) + env(safe-area-inset-bottom));
-        left: calc(var(--control-margin) + env(safe-area-inset-left));
+        bottom: calc(30px + env(safe-area-inset-bottom));
+        left: calc(var(--side-margin) + env(safe-area-inset-left));
     }
 
     .action-area {
-        bottom: calc(var(--control-margin) + env(safe-area-inset-bottom));
-        right: calc(var(--control-margin) + env(safe-area-inset-right));
+        bottom: calc(30px + env(safe-area-inset-bottom));
+        right: calc(var(--side-margin) + env(safe-area-inset-right));
     }
 
     .system-btns {
-        bottom: calc(var(--control-margin) + env(safe-area-inset-bottom));
+        bottom: calc(24px + env(safe-area-inset-bottom));
     }
 
     .game-grid {

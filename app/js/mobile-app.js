@@ -2,7 +2,7 @@
  * 移动端应用主逻辑
  */
 (function() {
-    const APP_VERSION = '1.1.2';
+    const APP_VERSION = '1.1.3';
     const GAMES = [
         { name: '超级玛丽', file: 'Super Mario Bros. (JU) (PRG0) [!].nes', icon: '🍄' },
         { name: '魂斗罗', file: 'hun.nes', icon: '🔫' },
@@ -34,6 +34,7 @@
     let isPaused = false;
     let audioContext = null;
     let mainBgm = null;
+    let pausedForBackground = false;
 
     document.addEventListener('DOMContentLoaded', function() {
         initGameGrid();
@@ -69,6 +70,7 @@
         document.getElementById('updateDismiss')?.addEventListener('click', dismissUpdate);
         document.addEventListener('pointerdown', unlockMainBgm, { once: true, passive: true });
         window.addEventListener('pagehide', saveMainBgmPosition);
+        document.addEventListener('visibilitychange', handleVisibilityChange);
         document.getElementById('resumeBtn')?.addEventListener('click', resumeGame);
         document.getElementById('restartBtn')?.addEventListener('click', restartGame);
         document.getElementById('exitBtn')?.addEventListener('click', goBack);
@@ -107,7 +109,8 @@
     }
 
     function checkForUpdates() {
-        fetch(`version.json?t=${Date.now()}`, { cache: 'no-store' })
+        const remoteManifest = 'https://raw.githubusercontent.com/zyf-coder/classic-fc-games/main/app/version.json';
+        fetch(`${remoteManifest}?t=${Date.now()}`, { cache: 'no-store' })
             .then(response => response.ok ? response.json() : null)
             .then(remote => {
                 if (!remote || compareVersions(remote.version, APP_VERSION) <= 0) return;
@@ -353,17 +356,34 @@
 
     function updateScreenMargin(event) {
         const value = Number(event.target.value);
-        document.documentElement.style.setProperty('--control-margin', `${value}px`);
+        document.documentElement.style.setProperty('--side-margin', `${value}px`);
         document.getElementById('screenMarginValue').textContent = `${value}px`;
-        localStorage.setItem('classicfc-control-margin-v2', String(value));
+        localStorage.setItem('classicfc-side-margin-v3', String(value));
     }
 
     function restoreScreenMargin() {
-        const value = Number(localStorage.getItem('classicfc-control-margin-v2') || 30);
+        const value = Number(localStorage.getItem('classicfc-side-margin-v3') || 44);
         const range = document.getElementById('screenMarginRange');
         if (!range) return;
         range.value = value;
         range.dispatchEvent(new Event('input'));
+    }
+
+    function handleVisibilityChange() {
+        if (document.visibilityState === 'hidden') {
+            saveMainBgmPosition();
+            if (mainBgm) mainBgm.pause();
+            if (nes && nes.isRunning) {
+                nes.stop();
+                pausedForBackground = true;
+            }
+            if (audioContext?.state === 'running') audioContext.suspend();
+            return;
+        }
+
+        if (audioContext?.state === 'suspended' && currentGame) audioContext.resume();
+        if (!currentGame && mainBgm) mainBgm.play().catch(() => {});
+        pausedForBackground = false;
     }
 
     function goBack() {
