@@ -2,7 +2,7 @@
  * 移动端应用主逻辑
  */
 (function() {
-    const APP_VERSION = '1.1.1';
+    const APP_VERSION = '1.1.2';
     const GAMES = [
         { name: '超级玛丽', file: 'Super Mario Bros. (JU) (PRG0) [!].nes', icon: '🍄' },
         { name: '魂斗罗', file: 'hun.nes', icon: '🔫' },
@@ -68,6 +68,7 @@
         document.getElementById('screenMarginRange')?.addEventListener('input', updateScreenMargin);
         document.getElementById('updateDismiss')?.addEventListener('click', dismissUpdate);
         document.addEventListener('pointerdown', unlockMainBgm, { once: true, passive: true });
+        window.addEventListener('pagehide', saveMainBgmPosition);
         document.getElementById('resumeBtn')?.addEventListener('click', resumeGame);
         document.getElementById('restartBtn')?.addEventListener('click', restartGame);
         document.getElementById('exitBtn')?.addEventListener('click', goBack);
@@ -87,7 +88,18 @@
         mainBgm = document.getElementById('mainBgm');
         if (!mainBgm) return;
         mainBgm.volume = 0.35;
+        const savedPosition = Number(localStorage.getItem('classicfc-main-bgm-position') || 0);
+        mainBgm.addEventListener('loadedmetadata', () => {
+            if (savedPosition > 0 && savedPosition < mainBgm.duration) mainBgm.currentTime = savedPosition;
+        }, { once: true });
+        mainBgm.addEventListener('timeupdate', saveMainBgmPosition);
         mainBgm.play().catch(() => {});
+    }
+
+    function saveMainBgmPosition() {
+        if (mainBgm && Number.isFinite(mainBgm.currentTime)) {
+            localStorage.setItem('classicfc-main-bgm-position', String(mainBgm.currentTime));
+        }
     }
 
     function unlockMainBgm() {
@@ -131,7 +143,7 @@
     function startGame(game) {
         currentGame = game;
         activateGameAudio();
-        if (mainBgm) { mainBgm.pause(); mainBgm.currentTime = 0; }
+        if (mainBgm) { saveMainBgmPosition(); mainBgm.pause(); }
         document.getElementById('gameSelectPage').classList.remove('active');
         document.getElementById('gamePage').classList.add('active');
         document.getElementById('gameTitle').textContent = game.name;

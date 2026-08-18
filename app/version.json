@@ -1,6 +1,6 @@
 {
-  "version": "1.1.1",
-  "versionCode": 3,
+  "version": "1.1.2",
+  "versionCode": 4,
   "downloadUrl": "../classic-fc-games.apk",
-  "notes": "改进触控布局、画面缩放、声音和主界面音乐"
+  "notes": "更换首页背景音乐并记忆播放进度"
 }

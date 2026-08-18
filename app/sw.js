@@ -1,4 +1,4 @@
-const CACHE_NAME = 'classic-fc-games-v2';
+const CACHE_NAME = 'classic-fc-games-v3';
 const urlsToCache = [
     './',
     './index.html',
@@ -17,7 +17,7 @@ const urlsToCache = [
     './js/mobile-app.js',
     './js/dynamicaudio-min.js',
     './manifest.json',
-    './bgm.mp3',
+    './cf.mp4',
     './version.json'
 ];
 
