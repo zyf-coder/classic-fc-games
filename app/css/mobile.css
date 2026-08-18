@@ -245,6 +245,7 @@ html, body {
     width: clamp(128px, 15vw, 176px);
     height: clamp(128px, 15vw, 176px);
     z-index: 200;
+    touch-action: none;
 }
 
 .joystick-base {
@@ -312,6 +313,7 @@ html, body {
     height: clamp(150px, 17vw, 210px);
     z-index: 200;
     filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.3));
+    touch-action: none;
 }
 
 .action-btn {
@@ -350,12 +352,14 @@ html, body {
 }
 
 .system-btns {
-    position: absolute;
-    bottom: 0;
-    left: 0;
+    position: fixed;
+    left: 50%;
+    bottom: max(var(--control-margin), env(safe-area-inset-bottom));
+    transform: translateX(-50%);
     display: flex;
     gap: 10px;
     z-index: 2;
+    width: max-content;
 }
 
 .system-btn {
@@ -389,6 +393,31 @@ html, body {
     pointer-events: none;
     transition: opacity 0.16s ease, transform 0.16s ease;
 }
+
+.update-banner {
+    position: fixed;
+    top: 16px;
+    left: 50%;
+    z-index: 220;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: min(460px, calc(100vw - 28px));
+    padding: 12px 14px;
+    border: 1px solid rgba(129, 140, 248, 0.55);
+    border-radius: 12px;
+    background: rgba(29, 35, 64, 0.97);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, -12px);
+    transition: opacity .2s ease, transform .2s ease;
+}
+.update-banner.visible { opacity: 1; pointer-events: auto; transform: translate(-50%, 0); }
+.update-banner strong { display: block; font-size: 13px; }
+.update-banner small { display: block; margin-top: 3px; color: var(--text-secondary); font-size: 11px; }
+.update-action { margin-left: auto; padding: 7px 11px; border-radius: 8px; background: var(--primary); color: white; text-decoration: none; font-size: 12px; white-space: nowrap; }
+.update-dismiss { border: 0; background: transparent; color: var(--text-secondary); font-size: 22px; line-height: 1; }
 
 .settings-panel.visible {
     opacity: 1;
@@ -477,6 +506,10 @@ html, body {
     .action-area {
         bottom: var(--control-margin);
         right: var(--control-margin);
+    }
+
+    .system-btns {
+        bottom: max(var(--control-margin), env(safe-area-inset-bottom));
     }
 
     .game-grid {

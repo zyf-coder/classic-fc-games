@@ -16,7 +16,9 @@ const urlsToCache = [
     './js/mobile-touch.js',
     './js/mobile-app.js',
     './js/dynamicaudio-min.js',
-    './manifest.json'
+    './manifest.json',
+    './bgm.mp3',
+    './version.json'
 ];
 
 // 安装 Service Worker

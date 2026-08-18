@@ -15,6 +15,7 @@ class VirtualJoystick {
         this.centerY = 0;
         this.currentX = 0;
         this.currentY = 0;
+        this.touchId = null;
         this.direction = { up: false, down: false, left: false, right: false };
         
         this.init();
@@ -30,6 +31,7 @@ class VirtualJoystick {
     handleTouchStart(e) {
         e.preventDefault();
         const touch = e.touches[0];
+        this.touchId = touch.identifier;
         const rect = this.base.getBoundingClientRect();
         this.centerX = rect.left + rect.width / 2;
         this.centerY = rect.top + rect.height / 2;
@@ -41,13 +43,17 @@ class VirtualJoystick {
     handleTouchMove(e) {
         if (!this.active) return;
         e.preventDefault();
-        const touch = e.touches[0];
+        const touch = Array.from(e.touches).find(item => item.identifier === this.touchId);
+        if (!touch) return;
         this.updateStick(touch.clientX, touch.clientY);
     }
     
     handleTouchEnd(e) {
         if (!this.active) return;
+        const ended = Array.from(e.changedTouches || []).some(item => item.identifier === this.touchId);
+        if (!ended) return;
         this.active = false;
+        this.touchId = null;
         this.element.classList.remove('is-active');
         this.element.classList.remove('direction-up', 'direction-down', 'direction-left', 'direction-right');
         this.stick.style.transform = 'translate(-50%, -50%)';
@@ -167,6 +173,7 @@ class TouchController {
         const press = (e) => {
             e.preventDefault();
             this.nes.keyboard.state1[keys[keyName]] = 0x41;
+            if (navigator.vibrate) navigator.vibrate(12);
             element.style.transform = 'scale(0.9)';
             element.style.opacity = '0.9';
         };

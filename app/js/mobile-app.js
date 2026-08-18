@@ -2,6 +2,7 @@
  * 移动端应用主逻辑
  */
 (function() {
+    const APP_VERSION = '1.1.1';
     const GAMES = [
         { name: '超级玛丽', file: 'Super Mario Bros. (JU) (PRG0) [!].nes', icon: '🍄' },
         { name: '魂斗罗', file: 'hun.nes', icon: '🔫' },
@@ -32,11 +33,14 @@
     let headerTimeout = null;
     let isPaused = false;
     let audioContext = null;
+    let mainBgm = null;
 
     document.addEventListener('DOMContentLoaded', function() {
         initGameGrid();
         initEventListeners();
         restoreScreenMargin();
+        initMainBgm();
+        checkForUpdates();
     });
 
     function initGameGrid() {
@@ -62,6 +66,8 @@
         document.getElementById('settingsBtn')?.addEventListener('click', toggleSettings);
         document.getElementById('settingsClose')?.addEventListener('click', toggleSettings);
         document.getElementById('screenMarginRange')?.addEventListener('input', updateScreenMargin);
+        document.getElementById('updateDismiss')?.addEventListener('click', dismissUpdate);
+        document.addEventListener('pointerdown', unlockMainBgm, { once: true, passive: true });
         document.getElementById('resumeBtn')?.addEventListener('click', resumeGame);
         document.getElementById('restartBtn')?.addEventListener('click', restartGame);
         document.getElementById('exitBtn')?.addEventListener('click', goBack);
@@ -77,8 +83,55 @@
         });
     }
 
+    function initMainBgm() {
+        mainBgm = document.getElementById('mainBgm');
+        if (!mainBgm) return;
+        mainBgm.volume = 0.35;
+        mainBgm.play().catch(() => {});
+    }
+
+    function unlockMainBgm() {
+        if (mainBgm && !currentGame) mainBgm.play().catch(() => {});
+    }
+
+    function checkForUpdates() {
+        fetch(`version.json?t=${Date.now()}`, { cache: 'no-store' })
+            .then(response => response.ok ? response.json() : null)
+            .then(remote => {
+                if (!remote || compareVersions(remote.version, APP_VERSION) <= 0) return;
+                const dismissed = sessionStorage.getItem(`update-dismissed-${remote.version}`);
+                if (dismissed) return;
+                const banner = document.getElementById('updateBanner');
+                const version = document.getElementById('updateVersion');
+                const action = banner?.querySelector('.update-action');
+                if (!banner) return;
+                version.textContent = `v${remote.version}`;
+                if (action && remote.downloadUrl) action.href = remote.downloadUrl;
+                banner.classList.add('visible');
+            })
+            .catch(() => {});
+    }
+
+    function compareVersions(left, right) {
+        const a = String(left).split('.').map(Number);
+        const b = String(right).split('.').map(Number);
+        for (let i = 0; i < 3; i++) {
+            if ((a[i] || 0) !== (b[i] || 0)) return (a[i] || 0) - (b[i] || 0);
+        }
+        return 0;
+    }
+
+    function dismissUpdate() {
+        const banner = document.getElementById('updateBanner');
+        const version = document.getElementById('updateVersion')?.textContent.replace(/^v/, '');
+        banner?.classList.remove('visible');
+        if (version) sessionStorage.setItem(`update-dismissed-${version}`, '1');
+    }
+
     function startGame(game) {
         currentGame = game;
+        activateGameAudio();
+        if (mainBgm) { mainBgm.pause(); mainBgm.currentTime = 0; }
         document.getElementById('gameSelectPage').classList.remove('active');
         document.getElementById('gamePage').classList.add('active');
         document.getElementById('gameTitle').textContent = game.name;
@@ -86,6 +139,15 @@
         setTimeout(() => {
             loadROM(game.file);
         }, 100);
+    }
+
+    function activateGameAudio() {
+        try {
+            audioContext = audioContext || new (window.AudioContext || window.webkitAudioContext)();
+            audioContext.resume();
+        } catch (error) {
+            console.warn('无法启动游戏声音:', error);
+        }
     }
 
     function loadROM(romFile) {
@@ -300,6 +362,7 @@
         }
         touchController = null;
         currentGame = null;
+        if (mainBgm) mainBgm.play().catch(() => {});
         isPaused = false;
         
         try {
