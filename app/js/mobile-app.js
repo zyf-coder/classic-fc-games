@@ -91,8 +91,9 @@
         const emulator = document.getElementById('emulator');
         emulator.innerHTML = '';
 
+        // JSNES expects a UI constructor here. The real canvas UI is attached below.
         nes = new JSNES({
-            ui: new JSNES.DummyUI(nes),
+            ui: JSNES.DummyUI,
             swfPath: 'js/'
         });
 
@@ -129,12 +130,18 @@
         };
 
         const xhr = new XMLHttpRequest();
-        xhr.open('GET', 'roms/' + romFile, true);
-        xhr.overrideMimeType('text/plain; charset=x-user-defined');
+        xhr.open('GET', 'roms/' + encodeURIComponent(romFile), true);
+        xhr.responseType = 'arraybuffer';
         xhr.onload = function() {
-            if (xhr.status === 200) {
+            if ((xhr.status >= 200 && xhr.status < 300) || xhr.status === 0) {
                 try {
-                    nes.loadRom(xhr.responseText);
+                    const bytes = new Uint8Array(xhr.response);
+                    let romData = '';
+                    const chunkSize = 0x8000;
+                    for (let i = 0; i < bytes.length; i += chunkSize) {
+                        romData += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
+                    }
+                    nes.loadRom(romData);
                     nes.start();
                     
                     if (touchController) {
@@ -148,7 +155,14 @@
                     console.error('ROM加载失败:', e);
                     alert('游戏加载失败，请重试');
                 }
+            } else {
+                console.error('ROM请求失败:', xhr.status, romFile);
+                alert('游戏文件加载失败，请返回后重试');
             }
+        };
+        xhr.onerror = function() {
+            console.error('ROM网络请求失败:', romFile);
+            alert('游戏文件加载失败，请检查应用资源');
         };
         xhr.send();
     }
