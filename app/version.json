@@ -1,9 +1,10 @@
 {
-  "version": "1.2.1",
-  "versionCode": 13,
+  "version": "1.2.2",
+  "versionCode": 14,
   "downloadUrl": "https://raw.githubusercontent.com/zyf-coder/classic-fc-games/main/classic-fc-games.apk",
-  "notes": "松鼠大战改为忍者神龟，松鼠大战2改为忍者神龟格斗"
+  "notes": "修复画面拉伸，保持游戏原始比例显示"
 }
+
 
 
 
