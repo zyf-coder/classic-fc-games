@@ -1,7 +1,7 @@
 /* 经典怀旧游戏 - 移动端样式 */
 
 :root {
-    --control-margin: 18px;
+    --control-margin: 30px;
     --primary: #6366f1;
     --primary-dark: #4f46e5;
     --bg-dark: #0f172a;
@@ -210,7 +210,7 @@ html, body {
     align-items: center;
     justify-content: center;
     background: #000;
-    padding: 38px clamp(110px, 12vw, 220px) 145px;
+    padding: 24px 80px 132px;
     overflow: hidden;
 }
 
@@ -225,9 +225,9 @@ html, body {
 .emulator canvas {
     display: block;
     width: auto;
-    height: min(78vh, 72vw);
-    max-width: 100%;
-    max-height: 100%;
+    height: min(90vh, 92vw);
+    max-width: calc(100vw - 140px);
+    max-height: none;
     aspect-ratio: 256 / 240;
     background: #111;
     image-rendering: pixelated;
@@ -240,10 +240,10 @@ html, body {
 
 .joystick-area {
     position: fixed;
-    bottom: max(var(--control-margin), env(safe-area-inset-bottom));
-    left: max(var(--control-margin), env(safe-area-inset-left));
-    width: clamp(128px, 15vw, 176px);
-    height: clamp(128px, 15vw, 176px);
+    bottom: calc(var(--control-margin) + env(safe-area-inset-bottom));
+    left: calc(var(--control-margin) + env(safe-area-inset-left));
+    width: clamp(150px, 18vw, 220px);
+    height: clamp(150px, 18vw, 220px);
     z-index: 200;
     touch-action: none;
 }
@@ -307,18 +307,18 @@ html, body {
 
 .action-area {
     position: fixed;
-    bottom: max(var(--control-margin), env(safe-area-inset-bottom));
-    right: max(var(--control-margin), env(safe-area-inset-right));
-    width: clamp(230px, 24vw, 320px);
-    height: clamp(150px, 17vw, 210px);
+    bottom: calc(var(--control-margin) + env(safe-area-inset-bottom));
+    right: calc(var(--control-margin) + env(safe-area-inset-right));
+    width: clamp(270px, 28vw, 380px);
+    height: clamp(180px, 20vw, 240px);
     z-index: 200;
     filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.3));
     touch-action: none;
 }
 
 .action-btn {
-    width: clamp(54px, 6vw, 76px);
-    height: clamp(54px, 6vw, 76px);
+    width: clamp(72px, 8vw, 100px);
+    height: clamp(72px, 8vw, 100px);
     border-radius: 50%;
     border: 2px solid rgba(255, 255, 255, 0.34);
     display: flex;
@@ -336,13 +336,13 @@ html, body {
 .btn-a {
     background: radial-gradient(circle at 32% 26%, #ff9b9b, #e55363 62%, #b92f4d);
     right: 0;
-    bottom: 96px;
+    bottom: 112px;
 }
 
 .btn-b {
     background: radial-gradient(circle at 32% 26%, #ffd18a, #e58a30 62%, #ae5122);
-    right: 92px;
-    bottom: 25px;
+    right: 118px;
+    bottom: 22px;
 }
 
 .action-btn:active {
@@ -354,7 +354,7 @@ html, body {
 .system-btns {
     position: fixed;
     left: 50%;
-    bottom: max(var(--control-margin), env(safe-area-inset-bottom));
+    bottom: calc(var(--control-margin) + env(safe-area-inset-bottom));
     transform: translateX(-50%);
     display: flex;
     gap: 10px;
@@ -489,27 +489,27 @@ html, body {
 
 @media (max-width: 600px) {
     .game-screen-container {
-        padding-left: 94px;
-        padding-right: 94px;
-        padding-bottom: 130px;
+        padding-left: 70px;
+        padding-right: 70px;
+        padding-bottom: 120px;
     }
 
     .emulator canvas {
-        height: min(70vh, 78vw);
+        height: min(86vh, 94vw);
     }
 
     .joystick-area {
-        bottom: var(--control-margin);
-        left: var(--control-margin);
+        bottom: calc(var(--control-margin) + env(safe-area-inset-bottom));
+        left: calc(var(--control-margin) + env(safe-area-inset-left));
     }
 
     .action-area {
-        bottom: var(--control-margin);
-        right: var(--control-margin);
+        bottom: calc(var(--control-margin) + env(safe-area-inset-bottom));
+        right: calc(var(--control-margin) + env(safe-area-inset-right));
     }
 
     .system-btns {
-        bottom: max(var(--control-margin), env(safe-area-inset-bottom));
+        bottom: calc(var(--control-margin) + env(safe-area-inset-bottom));
     }
 
     .game-grid {
@@ -537,12 +537,12 @@ html, body {
     
     .btn-a {
         right: 0;
-        bottom: 44px;
+        bottom: 92px;
     }
     
     .btn-b {
-        right: 60px;
-        bottom: 4px;
+        right: 96px;
+        bottom: 12px;
     }
 }
 

@@ -343,11 +343,11 @@
         const value = Number(event.target.value);
         document.documentElement.style.setProperty('--control-margin', `${value}px`);
         document.getElementById('screenMarginValue').textContent = `${value}px`;
-        localStorage.setItem('classicfc-control-margin', String(value));
+        localStorage.setItem('classicfc-control-margin-v2', String(value));
     }
 
     function restoreScreenMargin() {
-        const value = Number(localStorage.getItem('classicfc-control-margin') || 18);
+        const value = Number(localStorage.getItem('classicfc-control-margin-v2') || 30);
         const range = document.getElementById('screenMarginRange');
         if (!range) return;
         range.value = value;
