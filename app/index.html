@@ -52,6 +52,9 @@
             </button>
             <div class="game-title" id="gameTitle">游戏名称</div>
             <div class="header-right">
+                <button class="header-btn" id="settingsBtn" aria-label="操作设置">
+                    <svg viewBox="0 0 24 24" width="20" height="20"><path d="M19.43 12.98c.04-.32.07-.65.07-.98s-.02-.66-.07-.98l2.11-1.65-2-3.46-2.49 1a7.4 7.4 0 0 0-1.69-.98L15 3h-4l-.37 2.93c-.6.25-1.17.58-1.69.98l-2.49-1-2 3.46 2.11 1.65c-.04.32-.08.65-.08.98s.03.66.08.98l-2.11 1.65 2 3.46 2.49-1c.52.4 1.09.73 1.69.98L11 21h4l.37-2.93c.6-.25 1.17-.58 1.69-.98l2.49 1 2-3.46-2.12-1.65zM13 15.5A3.5 3.5 0 1 1 13 8a3.5 3.5 0 0 1 0 7.5z" fill="currentColor"/></svg>
+                </button>
                 <button class="header-btn" id="soundBtn">
                     <svg viewBox="0 0 24 24" width="20" height="20"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" fill="currentColor"/></svg>
                 </button>
@@ -59,6 +62,16 @@
                     <svg viewBox="0 0 24 24" width="20" height="20"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" fill="currentColor"/></svg>
                 </button>
             </div>
+        </div>
+
+        <div class="settings-panel" id="settingsPanel" aria-hidden="true">
+            <div class="settings-title">操作设置</div>
+            <label class="settings-range" for="screenMarginRange">
+                <span>两侧边距</span>
+                <output id="screenMarginValue">18px</output>
+            </label>
+            <input id="screenMarginRange" type="range" min="8" max="64" step="1" value="18">
+            <button class="settings-close" id="settingsClose">完成</button>
         </div>
 
         <!-- 游戏屏幕 -->

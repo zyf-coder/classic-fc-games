@@ -34,6 +34,7 @@ class VirtualJoystick {
         this.centerX = rect.left + rect.width / 2;
         this.centerY = rect.top + rect.height / 2;
         this.active = true;
+        this.element.classList.add('is-active');
         this.updateStick(touch.clientX, touch.clientY);
     }
     
@@ -47,6 +48,8 @@ class VirtualJoystick {
     handleTouchEnd(e) {
         if (!this.active) return;
         this.active = false;
+        this.element.classList.remove('is-active');
+        this.element.classList.remove('direction-up', 'direction-down', 'direction-left', 'direction-right');
         this.stick.style.transform = 'translate(-50%, -50%)';
         this.resetDirection();
         this.onEnd();
@@ -81,6 +84,10 @@ class VirtualJoystick {
             this.direction.left !== newDirection.left || 
             this.direction.right !== newDirection.right) {
             this.direction = newDirection;
+            this.element.classList.toggle('direction-up', newDirection.up);
+            this.element.classList.toggle('direction-down', newDirection.down);
+            this.element.classList.toggle('direction-left', newDirection.left);
+            this.element.classList.toggle('direction-right', newDirection.right);
             this.onMove(this.direction);
         }
     }

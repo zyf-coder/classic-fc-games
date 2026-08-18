@@ -31,10 +31,12 @@
     let currentGame = null;
     let headerTimeout = null;
     let isPaused = false;
+    let audioContext = null;
 
     document.addEventListener('DOMContentLoaded', function() {
         initGameGrid();
         initEventListeners();
+        restoreScreenMargin();
     });
 
     function initGameGrid() {
@@ -57,6 +59,9 @@
         document.getElementById('backBtn')?.addEventListener('click', goBack);
         document.getElementById('pauseBtn')?.addEventListener('click', togglePause);
         document.getElementById('soundBtn')?.addEventListener('click', toggleSound);
+        document.getElementById('settingsBtn')?.addEventListener('click', toggleSettings);
+        document.getElementById('settingsClose')?.addEventListener('click', toggleSettings);
+        document.getElementById('screenMarginRange')?.addEventListener('input', updateScreenMargin);
         document.getElementById('resumeBtn')?.addEventListener('click', resumeGame);
         document.getElementById('restartBtn')?.addEventListener('click', restartGame);
         document.getElementById('exitBtn')?.addEventListener('click', goBack);
@@ -97,6 +102,14 @@
             swfPath: 'js/'
         });
 
+        try {
+            audioContext = audioContext || new (window.AudioContext || window.webkitAudioContext)();
+        } catch (error) {
+            console.warn('当前设备不支持 WebAudio:', error);
+        }
+        nes.opts.emulateSound = true;
+        if (audioContext?.state === 'suspended') audioContext.resume();
+
         const canvas = document.createElement('canvas');
         canvas.width = 256;
         canvas.height = 240;
@@ -124,7 +137,22 @@
                 }
                 ctx.putImageData(imageData, 0, 0);
             },
-            writeAudio: function() {},
+            writeAudio: function(samples) {
+                if (!audioContext || !samples || !samples.length) return;
+                if (audioContext.state === 'suspended') audioContext.resume();
+                const frames = Math.floor(samples.length / 2);
+                const buffer = audioContext.createBuffer(2, frames, 44100);
+                const left = buffer.getChannelData(0);
+                const right = buffer.getChannelData(1);
+                for (let i = 0; i < frames; i++) {
+                    left[i] = Math.max(-1, samples[i * 2] / 32767);
+                    right[i] = Math.max(-1, samples[i * 2 + 1] / 32767);
+                }
+                const source = audioContext.createBufferSource();
+                source.buffer = buffer;
+                source.connect(audioContext.destination);
+                source.start();
+            },
             updateStatus: function() {},
             enable: function() {}
         };
@@ -232,6 +260,7 @@
     function toggleSound() {
         if (!nes) return;
         nes.opts.emulateSound = !nes.opts.emulateSound;
+        if (nes.opts.emulateSound && audioContext?.state === 'suspended') audioContext.resume();
         
         const soundBtn = document.getElementById('soundBtn');
         if (nes.opts.emulateSound) {
@@ -239,6 +268,28 @@
         } else {
             soundBtn.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z" fill="currentColor"/></svg>';
         }
+    }
+
+    function toggleSettings() {
+        const panel = document.getElementById('settingsPanel');
+        if (!panel) return;
+        const visible = panel.classList.toggle('visible');
+        panel.setAttribute('aria-hidden', String(!visible));
+    }
+
+    function updateScreenMargin(event) {
+        const value = Number(event.target.value);
+        document.documentElement.style.setProperty('--control-margin', `${value}px`);
+        document.getElementById('screenMarginValue').textContent = `${value}px`;
+        localStorage.setItem('classicfc-control-margin', String(value));
+    }
+
+    function restoreScreenMargin() {
+        const value = Number(localStorage.getItem('classicfc-control-margin') || 18);
+        const range = document.getElementById('screenMarginRange');
+        if (!range) return;
+        range.value = value;
+        range.dispatchEvent(new Event('input'));
     }
 
     function goBack() {

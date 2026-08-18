@@ -1,6 +1,7 @@
 /* 经典怀旧游戏 - 移动端样式 */
 
 :root {
+    --control-margin: 18px;
     --primary: #6366f1;
     --primary-dark: #4f46e5;
     --bg-dark: #0f172a;
@@ -209,7 +210,7 @@ html, body {
     align-items: center;
     justify-content: center;
     background: #000;
-    padding: 48px clamp(150px, 15vw, 280px) 170px;
+    padding: 38px clamp(110px, 12vw, 220px) 145px;
     overflow: hidden;
 }
 
@@ -224,7 +225,7 @@ html, body {
 .emulator canvas {
     display: block;
     width: auto;
-    height: min(70vh, 60vw);
+    height: min(78vh, 72vw);
     max-width: 100%;
     max-height: 100%;
     aspect-ratio: 256 / 240;
@@ -239,10 +240,10 @@ html, body {
 
 .joystick-area {
     position: fixed;
-    bottom: max(18px, env(safe-area-inset-bottom));
-    left: max(18px, env(safe-area-inset-left));
-    width: clamp(112px, 14vw, 160px);
-    height: clamp(112px, 14vw, 160px);
+    bottom: max(var(--control-margin), env(safe-area-inset-bottom));
+    left: max(var(--control-margin), env(safe-area-inset-left));
+    width: clamp(128px, 15vw, 176px);
+    height: clamp(128px, 15vw, 176px);
     z-index: 200;
 }
 
@@ -268,6 +269,21 @@ html, body {
     transition: transform 0.05s ease;
     pointer-events: none;
     box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+    transition: box-shadow 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
+}
+
+.joystick-area.is-active .joystick-base {
+    border-color: rgba(129, 140, 248, 0.75);
+    box-shadow: 0 0 0 8px rgba(99, 102, 241, 0.1), 0 0 26px rgba(99, 102, 241, 0.34);
+    transform: scale(1.035);
+}
+
+.joystick-area.direction-up .dir-up,
+.joystick-area.direction-down .dir-down,
+.joystick-area.direction-left .dir-left,
+.joystick-area.direction-right .dir-right {
+    color: #c7d2fe;
+    transform: scale(1.45);
 }
 
 .joystick-direction {
@@ -290,45 +306,47 @@ html, body {
 
 .action-area {
     position: fixed;
-    bottom: max(18px, env(safe-area-inset-bottom));
-    right: max(18px, env(safe-area-inset-right));
-    width: clamp(150px, 18vw, 210px);
-    height: clamp(125px, 15vw, 170px);
+    bottom: max(var(--control-margin), env(safe-area-inset-bottom));
+    right: max(var(--control-margin), env(safe-area-inset-right));
+    width: clamp(230px, 24vw, 320px);
+    height: clamp(150px, 17vw, 210px);
     z-index: 200;
+    filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.3));
 }
 
 .action-btn {
     width: clamp(54px, 6vw, 76px);
     height: clamp(54px, 6vw, 76px);
     border-radius: 50%;
-    border: none;
+    border: 2px solid rgba(255, 255, 255, 0.34);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 16px;
     font-weight: 700;
-    color: white;
+    color: rgba(255, 255, 255, 0.96);
     cursor: pointer;
     position: absolute;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-    transition: transform 0.1s ease, opacity 0.1s ease;
+    box-shadow: inset 0 2px 3px rgba(255,255,255,0.28), inset 0 -7px 14px rgba(0,0,0,0.2), 0 5px 12px rgba(0,0,0,0.38);
+    transition: transform 0.1s ease, opacity 0.1s ease, filter 0.1s ease;
 }
 
 .btn-a {
-    background: radial-gradient(circle at 30% 30%, #ff6b6b, #ef4444);
+    background: radial-gradient(circle at 32% 26%, #ff9b9b, #e55363 62%, #b92f4d);
     right: 0;
-    bottom: 40px;
+    bottom: 96px;
 }
 
 .btn-b {
-    background: radial-gradient(circle at 30% 30%, #ffa94d, #f97316);
-    right: 70px;
-    bottom: 0;
+    background: radial-gradient(circle at 32% 26%, #ffd18a, #e58a30 62%, #ae5122);
+    right: 92px;
+    bottom: 25px;
 }
 
 .action-btn:active {
     transform: scale(0.9);
     opacity: 0.9;
+    filter: brightness(1.18);
 }
 
 .system-btns {
@@ -337,23 +355,56 @@ html, body {
     left: 0;
     display: flex;
     gap: 10px;
+    z-index: 2;
 }
 
 .system-btn {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 20px;
-    min-width: 62px;
-    min-height: 34px;
-    padding: 6px 10px;
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 11px;
-    font-weight: 500;
+    background: rgba(24, 29, 45, 0.86);
+    border: 1px solid rgba(203, 213, 225, 0.32);
+    border-radius: 10px;
+    min-width: 74px;
+    min-height: 36px;
+    padding: 6px 12px;
+    color: rgba(226, 232, 240, 0.92);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    box-shadow: inset 0 1px rgba(255,255,255,0.1), 0 4px 12px rgba(0,0,0,0.26);
     cursor: pointer;
 }
 
+.settings-panel {
+    position: fixed;
+    top: 56px;
+    right: var(--control-margin);
+    z-index: 260;
+    width: min(260px, calc(100vw - 32px));
+    padding: 16px;
+    background: rgba(22, 27, 47, 0.96);
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    border-radius: 14px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+    pointer-events: none;
+    transition: opacity 0.16s ease, transform 0.16s ease;
+}
+
+.settings-panel.visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+}
+
+.settings-title { font-size: 15px; font-weight: 700; margin-bottom: 14px; }
+.settings-range { display: flex; justify-content: space-between; color: var(--text-secondary); font-size: 12px; }
+.settings-range output { color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.settings-panel input[type="range"] { width: 100%; margin: 14px 0; accent-color: var(--primary); }
+.settings-close { width: 100%; padding: 8px; border: 0; border-radius: 8px; background: var(--primary); color: white; }
+
 .system-btn:active {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(99, 102, 241, 0.72);
+    transform: translateY(1px);
 }
 
 .pause-overlay {
@@ -409,23 +460,23 @@ html, body {
 
 @media (max-width: 600px) {
     .game-screen-container {
-        padding-left: 116px;
-        padding-right: 116px;
-        padding-bottom: 145px;
+        padding-left: 94px;
+        padding-right: 94px;
+        padding-bottom: 130px;
     }
 
     .emulator canvas {
-        height: min(58vh, 66vw);
+        height: min(70vh, 78vw);
     }
 
     .joystick-area {
-        bottom: 14px;
-        left: 14px;
+        bottom: var(--control-margin);
+        left: var(--control-margin);
     }
 
     .action-area {
-        bottom: 14px;
-        right: 14px;
+        bottom: var(--control-margin);
+        right: var(--control-margin);
     }
 
     .game-grid {
