@@ -2,7 +2,7 @@
  * 移动端应用主逻辑
  */
 (function() {
-    const APP_VERSION = '1.2.0';
+    const APP_VERSION = '1.2.1';
     const GAMES = [
         { name: '超级玛丽', file: 'Super Mario Bros. (JU) (PRG0) [!].nes', icon: '🍄' },
         { name: '魂斗罗', file: 'hun.nes', icon: '🔫' },
@@ -13,8 +13,8 @@
         { name: '坦克大战', file: 'tanke.nes', icon: '🎖️' },
         { name: '冒险岛', file: 'maoxiandao.nes', icon: '🏝️' },
         { name: '忍者蛙', file: 'xueren.nes', icon: '🐸' },
-        { name: '松鼠大战', file: 'sg1.nes', icon: '🐿️' },
-        { name: '松鼠大战2', file: 'sg4.nes', icon: '🐿️' },
+        { name: '忍者神龟', file: 'sg1.nes', icon: '🐢' },
+        { name: '忍者神龟格斗', file: 'sg4.nes', icon: '🐢' },
         { name: '淘金者', file: 'lkr.nes', icon: '💎' },
         { name: '雪人兄弟', file: 'ppl2.nes', icon: '⛄' },
         { name: '炸弹人', file: 'zhadan.nes', icon: '💣' },
@@ -409,6 +409,8 @@
         document.getElementById('gameSelectPage').classList.add('active');
     }
 })();
+
+
 
 
 
