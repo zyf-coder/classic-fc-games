@@ -2,7 +2,7 @@
  * 移动端应用主逻辑
  */
 (function() {
-    const APP_VERSION = '1.1.8';
+    const APP_VERSION = '1.1.9';
     const GAMES = [
         { name: '超级玛丽', file: 'Super Mario Bros. (JU) (PRG0) [!].nes', icon: '🍄' },
         { name: '魂斗罗', file: 'hun.nes', icon: '🔫' },
@@ -114,7 +114,7 @@
             .then(response => response.ok ? response.json() : null)
             .then(remote => {
                 if (!remote || compareVersions(remote.version, APP_VERSION) <= 0) return;
-                const dismissed = sessionStorage.getItem(`update-dismissed-${remote.version}`);
+                const dismissed = localStorage.getItem(`update-dismissed-${remote.version}`);
                 if (dismissed) return;
                 const banner = document.getElementById('updateBanner');
                 const version = document.getElementById('updateVersion');
@@ -142,7 +142,7 @@
         const banner = document.getElementById('updateBanner');
         const version = document.getElementById('updateVersion')?.textContent.replace(/^v/, '');
         banner?.classList.remove('visible');
-        if (version) sessionStorage.setItem(`update-dismissed-${version}`, '1');
+        if (version) localStorage.setItem(`update-dismissed-${version}`, '1');
     }
 
     function startGame(game) {
@@ -409,6 +409,8 @@
         document.getElementById('gameSelectPage').classList.add('active');
     }
 })();
+
+
 
 
 

@@ -1,8 +1,9 @@
 {
-  "version": "1.1.8",
-  "versionCode": 10,
+  "version": "1.1.9",
+  "versionCode": 11,
   "downloadUrl": "https://raw.githubusercontent.com/zyf-coder/classic-fc-games/main/classic-fc-games.apk",
-  "notes": "优化游戏卡片对齐，显示更整齐"
+  "notes": "修复更新提示，每台设备独立显示"
 }
+
 
 
