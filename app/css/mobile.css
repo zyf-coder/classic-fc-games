@@ -553,12 +553,12 @@ html, body {
     }
     
     .joystick-area {
-        bottom: calc(20px + env(safe-area-inset-bottom));
-        left: calc(20px + env(safe-area-inset-left));
+        bottom: calc(30px + env(safe-area-inset-bottom));
+        left: calc(var(--side-margin) + env(safe-area-inset-left));
     }
     
     .action-area {
-        bottom: calc(20px + env(safe-area-inset-bottom));
-        right: calc(20px + env(safe-area-inset-right));
+        bottom: calc(30px + env(safe-area-inset-bottom));
+        right: calc(var(--side-margin) + env(safe-area-inset-right));
     }
 }

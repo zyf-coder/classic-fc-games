@@ -2,7 +2,7 @@
  * 移动端应用主逻辑
  */
 (function() {
-    const APP_VERSION = '1.1.3';
+    const APP_VERSION = '1.1.4';
     const GAMES = [
         { name: '超级玛丽', file: 'Super Mario Bros. (JU) (PRG0) [!].nes', icon: '🍄' },
         { name: '魂斗罗', file: 'hun.nes', icon: '🔫' },
@@ -118,9 +118,11 @@
                 if (dismissed) return;
                 const banner = document.getElementById('updateBanner');
                 const version = document.getElementById('updateVersion');
+                const notes = document.getElementById('updateNotes');
                 const action = banner?.querySelector('.update-action');
                 if (!banner) return;
                 version.textContent = `v${remote.version}`;
+                if (notes && remote.notes) notes.textContent = remote.notes;
                 if (action && remote.downloadUrl) action.href = remote.downloadUrl;
                 banner.classList.add('visible');
             })
