@@ -3,8 +3,12 @@ package com.classicfc.games;
 import com.getcapacitor.BridgeActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Toast;
+import androidx.activity.OnBackPressedCallback;
 
 public class MainActivity extends BridgeActivity {
+    private long lastBackPress = 0L;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -16,5 +20,18 @@ public class MainActivity extends BridgeActivity {
                 | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
         );
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                long now = System.currentTimeMillis();
+                if (now - lastBackPress < 2000L) {
+                    setEnabled(false);
+                    getOnBackPressedDispatcher().onBackPressed();
+                    return;
+                }
+                lastBackPress = now;
+                Toast.makeText(MainActivity.this, "再次侧滑或返回即可退出", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }

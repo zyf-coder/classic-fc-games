@@ -1,6 +1,6 @@
 {
-  "version": "1.1.4",
-  "versionCode": 6,
+  "version": "1.1.5",
+  "versionCode": 7,
   "downloadUrl": "https://raw.githubusercontent.com/zyf-coder/classic-fc-games/main/classic-fc-games.apk",
-  "notes": "修复左右边距设置覆盖问题，并显示详细更新内容"
+  "notes": "新增首页与游戏内两次侧滑/返回确认退出；更新应用图标"
 }
