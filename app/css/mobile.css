@@ -203,7 +203,7 @@ html, body {
     font-weight: 600;
 }
 
-/* 游戏屏幕容器 - 修复布局 */
+/* 游戏屏幕容器 - 填满屏幕 */
 .game-screen-container {
     position: absolute;
     top: 0;
@@ -214,7 +214,7 @@ html, body {
     align-items: center;
     justify-content: center;
     background: #000;
-    padding: 20px;
+    padding: 10px 80px 100px;
     overflow: hidden;
 }
 
@@ -228,10 +228,8 @@ html, body {
 
 .emulator canvas {
     display: block;
-    max-width: 100%;
-    max-height: 100%;
-    width: auto;
-    height: auto;
+    width: 100%;
+    height: 100%;
     object-fit: contain;
     aspect-ratio: 256 / 240;
     background: #111;
@@ -538,11 +536,12 @@ html, body {
 /* 响应式布局 */
 @media (max-width: 600px) {
     .game-screen-container {
-        padding: 15px;
+        padding: 5px 70px 90px;
     }
 
     .emulator canvas {
-        max-height: calc(100vh - 180px);
+        width: 100%;
+        height: 100%;
     }
 
     .joystick-area {
@@ -610,3 +609,4 @@ html, body {
         right: calc(var(--side-margin) + env(safe-area-inset-right));
     }
 }
+

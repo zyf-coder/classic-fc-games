@@ -2,7 +2,7 @@
  * 移动端应用主逻辑
  */
 (function() {
-    const APP_VERSION = '1.1.6';
+    const APP_VERSION = '1.1.7';
     const GAMES = [
         { name: '超级玛丽', file: 'Super Mario Bros. (JU) (PRG0) [!].nes', icon: '🍄' },
         { name: '魂斗罗', file: 'hun.nes', icon: '🔫' },
@@ -409,4 +409,5 @@
         document.getElementById('gameSelectPage').classList.add('active');
     }
 })();
+
 

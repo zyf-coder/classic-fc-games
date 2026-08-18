@@ -1,6 +1,7 @@
 {
-  "version": "1.1.6",
-  "versionCode": 8,
+  "version": "1.1.7",
+  "versionCode": 9,
   "downloadUrl": "https://raw.githubusercontent.com/zyf-coder/classic-fc-games/main/classic-fc-games.apk",
-  "notes": "修复游戏画面布局，优化样式适配网页和手机端"
+  "notes": "游戏画面填满屏幕，显示更大更清晰"
 }
+
