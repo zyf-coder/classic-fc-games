@@ -1,0 +1,249 @@
+/**
+ * 移动端应用主逻辑
+ */
+(function() {
+    const GAMES = [
+        { name: '超级玛丽', file: 'Super Mario Bros. (JU) (PRG0) [!].nes', icon: '🍄' },
+        { name: '魂斗罗', file: 'hun.nes', icon: '🔫' },
+        { name: '忍者龙剑传', file: 'Kage.nes', icon: '🥷' },
+        { name: '赤色要塞', file: 'emc.nes', icon: '🚗' },
+        { name: '双截龙2', file: 'Double Dragon2.nes', icon: '👊' },
+        { name: '沙罗曼蛇', file: 'Life Force [!].nes', icon: '🚀' },
+        { name: '坦克大战', file: 'tanke.nes', icon: '🎖️' },
+        { name: '冒险岛', file: 'maoxiandao.nes', icon: '🏝️' },
+        { name: '忍者蛙', file: 'xueren.nes', icon: '🐸' },
+        { name: '松鼠大战', file: 'sg1.nes', icon: '🐿️' },
+        { name: '松鼠大战2', file: 'sg4.nes', icon: '🐿️' },
+        { name: '淘金者', file: 'lkr.nes', icon: '💎' },
+        { name: '雪人兄弟', file: 'ppl2.nes', icon: '⛄' },
+        { name: '炸弹人', file: 'zhadan.nes', icon: '💣' },
+        { name: '越野摩托', file: 'Motor.nes', icon: '🏍️' },
+        { name: '功夫', file: '(J) (V1.2) Yie Ar Kung-Fu [!].nes', icon: '🥋' },
+        { name: '中国象棋', file: 'Zhong Guo Xiang Qi.nes', icon: '♟️' },
+        { name: '西游记', file: 'xyj1.nes', icon: '🐒' },
+        { name: '马戏团', file: 'ma.nes', icon: '🎪' },
+        { name: '忍者蛙与双截龙', file: 'rjbq.nes', icon: '🐉' },
+        { name: '洛克人', file: '3.nes', icon: '🤖' }
+    ];
+
+    let nes = null;
+    let touchController = null;
+    let currentGame = null;
+    let headerTimeout = null;
+    let isPaused = false;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        initGameGrid();
+        initEventListeners();
+    });
+
+    function initGameGrid() {
+        const grid = document.getElementById('gameGrid');
+        if (!grid) return;
+
+        GAMES.forEach(game => {
+            const card = document.createElement('div');
+            card.className = 'game-card';
+            card.innerHTML = `
+                <div class="game-icon">${game.icon}</div>
+                <div class="game-name">${game.name}</div>
+            `;
+            card.addEventListener('click', () => startGame(game));
+            grid.appendChild(card);
+        });
+    }
+
+    function initEventListeners() {
+        document.getElementById('backBtn')?.addEventListener('click', goBack);
+        document.getElementById('pauseBtn')?.addEventListener('click', togglePause);
+        document.getElementById('soundBtn')?.addEventListener('click', toggleSound);
+        document.getElementById('resumeBtn')?.addEventListener('click', resumeGame);
+        document.getElementById('restartBtn')?.addEventListener('click', restartGame);
+        document.getElementById('exitBtn')?.addEventListener('click', goBack);
+        
+        document.getElementById('gamePage')?.addEventListener('click', function(e) {
+            if (e.target.closest('.joystick-area') || 
+                e.target.closest('.action-area') || 
+                e.target.closest('.game-header') ||
+                e.target.closest('.pause-overlay')) {
+                return;
+            }
+            toggleHeader();
+        });
+    }
+
+    function startGame(game) {
+        currentGame = game;
+        document.getElementById('gameSelectPage').classList.remove('active');
+        document.getElementById('gamePage').classList.add('active');
+        document.getElementById('gameTitle').textContent = game.name;
+
+        setTimeout(() => {
+            loadROM(game.file);
+        }, 100);
+    }
+
+    function loadROM(romFile) {
+        if (nes) {
+            try { nes.stop(); } catch(e) {}
+        }
+
+        const emulator = document.getElementById('emulator');
+        emulator.innerHTML = '';
+
+        nes = new JSNES({
+            ui: new JSNES.DummyUI(nes),
+            swfPath: 'js/'
+        });
+
+        const canvas = document.createElement('canvas');
+        canvas.width = 256;
+        canvas.height = 240;
+        canvas.className = 'nes-screen';
+        canvas.style.imageRendering = 'pixelated';
+        canvas.style.imageRendering = 'crisp-edges';
+        emulator.appendChild(canvas);
+
+        nes.ui = {
+            writeFrame: function(buffer, prevBuffer) {
+                const ctx = canvas.getContext('2d');
+                const imageData = ctx.getImageData(0, 0, 256, 240);
+                const data = imageData.data;
+
+                for (let i = 0; i < 256 * 240; i++) {
+                    const pixel = buffer[i];
+                    if (pixel !== prevBuffer[i]) {
+                        const j = i * 4;
+                        data[j] = pixel & 0xFF;
+                        data[j + 1] = (pixel >> 8) & 0xFF;
+                        data[j + 2] = (pixel >> 16) & 0xFF;
+                        data[j + 3] = 0xFF;
+                        prevBuffer[i] = pixel;
+                    }
+                }
+                ctx.putImageData(imageData, 0, 0);
+            },
+            writeAudio: function() {},
+            updateStatus: function() {},
+            enable: function() {}
+        };
+
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', 'roms/' + romFile, true);
+        xhr.overrideMimeType('text/plain; charset=x-user-defined');
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                try {
+                    nes.loadRom(xhr.responseText);
+                    nes.start();
+                    
+                    if (touchController) {
+                        touchController = null;
+                    }
+                    touchController = new TouchController(nes);
+                    
+                    requestFullscreen();
+                    showHeader();
+                } catch(e) {
+                    console.error('ROM加载失败:', e);
+                    alert('游戏加载失败，请重试');
+                }
+            }
+        };
+        xhr.send();
+    }
+
+    function requestFullscreen() {
+        const elem = document.documentElement;
+        if (elem.requestFullscreen) {
+            elem.requestFullscreen().catch(() => {});
+        } else if (elem.webkitRequestFullscreen) {
+            elem.webkitRequestFullscreen();
+        } else if (elem.msRequestFullscreen) {
+            elem.msRequestFullscreen();
+        }
+    }
+
+    function showHeader() {
+        const header = document.getElementById('gameHeader');
+        header.classList.add('visible');
+        
+        if (headerTimeout) clearTimeout(headerTimeout);
+        headerTimeout = setTimeout(() => {
+            header.classList.remove('visible');
+        }, 3000);
+    }
+
+    function toggleHeader() {
+        const header = document.getElementById('gameHeader');
+        if (header.classList.contains('visible')) {
+            header.classList.remove('visible');
+            if (headerTimeout) clearTimeout(headerTimeout);
+        } else {
+            showHeader();
+        }
+    }
+
+    function togglePause() {
+        if (!nes) return;
+        
+        if (isPaused) {
+            nes.start();
+            isPaused = false;
+        } else {
+            nes.stop();
+            isPaused = true;
+            document.getElementById('pauseOverlay').classList.add('visible');
+        }
+    }
+
+    function resumeGame() {
+        document.getElementById('pauseOverlay').classList.remove('visible');
+        if (nes) {
+            nes.start();
+            isPaused = false;
+        }
+    }
+
+    function restartGame() {
+        document.getElementById('pauseOverlay').classList.remove('visible');
+        if (nes && currentGame) {
+            try { nes.reloadRom(); nes.start(); } catch(e) {
+                loadROM(currentGame.file);
+            }
+            isPaused = false;
+        }
+    }
+
+    function toggleSound() {
+        if (!nes) return;
+        nes.opts.emulateSound = !nes.opts.emulateSound;
+        
+        const soundBtn = document.getElementById('soundBtn');
+        if (nes.opts.emulateSound) {
+            soundBtn.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" fill="currentColor"/></svg>';
+        } else {
+            soundBtn.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z" fill="currentColor"/></svg>';
+        }
+    }
+
+    function goBack() {
+        document.getElementById('pauseOverlay').classList.remove('visible');
+        if (nes) {
+            try { nes.stop(); } catch(e) {}
+            nes = null;
+        }
+        touchController = null;
+        currentGame = null;
+        isPaused = false;
+        
+        try {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        } catch(e) {}
+        
+        document.getElementById('gamePage').classList.remove('active');
+        document.getElementById('gameSelectPage').classList.add('active');
+    }
+})();
