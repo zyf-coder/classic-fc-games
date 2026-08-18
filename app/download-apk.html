@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APK 下载</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
+            background: linear-gradient(135deg, #0f172a, #1e1b4b);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container { 
+            background: #1e293b; 
+            border-radius: 20px; 
+            padding: 40px; 
+            max-width: 500px; 
+            width: 100%;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .icon { font-size: 80px; margin-bottom: 20px; }
+        h1 { color: #f8fafc; font-size: 24px; margin-bottom: 10px; }
+        p { color: #94a3b8; margin-bottom: 30px; line-height: 1.6; }
+        .btn { 
+            display: block; 
+            width: 100%; 
+            padding: 16px; 
+            margin: 10px 0; 
+            border-radius: 12px; 
+            font-size: 16px; 
+            font-weight: 600; 
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .btn-primary { 
+            background: linear-gradient(135deg, #6366f1, #8b5cf6); 
+            color: white; 
+        }
+        .btn-secondary { 
+            background: #334155; 
+            color: #f8fafc; 
+            border: 1px solid rgba(255,255,255,0.1); 
+        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(99,102,241,0.3); }
+        .steps { text-align: left; margin: 20px 0; }
+        .step { 
+            background: #0f172a; 
+            padding: 15px; 
+            border-radius: 10px; 
+            margin: 10px 0; 
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .step-num { 
+            background: #6366f1; 
+            color: white; 
+            width: 30px; 
+            height: 30px; 
+            border-radius: 50%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-weight: 600; 
+            flex-shrink: 0;
+        }
+        .step-text { color: #e2e8f0; font-size: 14px; }
+        .divider { 
+            height: 1px; 
+            background: rgba(255,255,255,0.1); 
+            margin: 30px 0; 
+        }
+        .footer { color: #64748b; font-size: 12px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">🎮</div>
+        <h1>经典怀旧游戏</h1>
+        <p>FC/NES 经典游戏合集<br>支持手机触屏操作</p>
+        
+        <a href="https://appsgeyser.com" class="btn btn-primary" target="_blank">
+            📦 在线生成 APK
+        </a>
+        
+        <div class="divider"></div>
+        
+        <h2 style="color: #f8fafc; font-size: 18px; margin-bottom: 20px;">快速生成步骤</h2>
+        
+        <div class="steps">
+            <div class="step">
+                <div class="step-num">1</div>
+                <div class="step-text">点击上方按钮访问 AppsGeyser</div>
+            </div>
+            <div class="step">
+                <div class="step-num">2</div>
+                <div class="step-text">选择 "Website" 模板</div>
+            </div>
+            <div class="step">
+                <div class="step-num">3</div>
+                <div class="step-text">输入网址：<br><code style="background:#334155;padding:4px 8px;border-radius:4px;font-size:12px;">https://zyf-coder.github.io/classic-fc-games/</code></div>
+            </div>
+            <div class="step">
+                <div class="step-num">4</div>
+                <div class="step-text">自定义应用名称和图标</div>
+            </div>
+            <div class="step">
+                <div class="step-num">5</div>
+                <div class="step-text">点击 "Create" → 下载 APK</div>
+            </div>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <a href="https://zyf-coder.github.io/classic-fc-games/" class="btn btn-secondary">
+            🌐 直接访问网页版
+        </a>
+        
+        <div class="footer">
+            APK 生成完全免费，约 2-3 分钟即可完成
+        </div>
+    </div>
+</body>
+</html>
