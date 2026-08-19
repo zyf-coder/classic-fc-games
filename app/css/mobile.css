@@ -619,3 +619,251 @@ html, body {
     }
 }
 
+
+/* 联机对话框样式 */
+.online-dialog {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 400;
+}
+
+.online-dialog.visible {
+    display: flex;
+}
+
+.online-dialog-content {
+    background: var(--bg-card);
+    border-radius: 20px;
+    padding: 24px;
+    width: min(380px, 90vw);
+    max-height: 80vh;
+    overflow-y: auto;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.online-dialog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.online-dialog-header h2 {
+    font-size: 20px;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.online-dialog-close {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 28px;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+
+.online-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.online-tab {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    background: var(--bg-surface);
+    color: var(--text-secondary);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.online-tab.active {
+    background: var(--primary);
+    color: white;
+}
+
+.online-panel {
+    display: none;
+}
+
+.online-panel.active {
+    display: block;
+}
+
+.online-form-group {
+    margin-bottom: 16px;
+}
+
+.online-form-group label {
+    display: block;
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+}
+
+.online-form-group input,
+.online-form-group select {
+    width: 100%;
+    padding: 12px;
+    background: var(--bg-surface);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 14px;
+    outline: none;
+}
+
+.online-form-group input:focus,
+.online-form-group select:focus {
+    border-color: var(--primary);
+}
+
+.online-btn {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 10px;
+}
+
+.online-btn-primary {
+    background: var(--primary);
+    color: white;
+}
+
+.online-btn-primary:hover {
+    background: var(--primary-dark);
+}
+
+.online-btn-secondary {
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.online-btn-danger {
+    background: #ef4444;
+    color: white;
+}
+
+.online-btn-danger:hover {
+    background: #dc2626;
+}
+
+/* 等待面板 */
+.waiting-info {
+    text-align: center;
+    padding: 20px 0;
+}
+
+.waiting-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+.waiting-text {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+}
+
+.waiting-room-id {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--primary);
+    letter-spacing: 4px;
+    margin-bottom: 8px;
+}
+
+.waiting-hint {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+/* 已连接面板 */
+.connected-info {
+    text-align: center;
+    padding: 20px 0;
+}
+
+.connected-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+.connected-text {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+}
+
+.connected-players {
+    font-size: 16px;
+    color: var(--text-secondary);
+}
+
+/* 联机状态栏 */
+.online-status-bar {
+    position: fixed;
+    top: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(22, 27, 47, 0.95);
+    border: 1px solid var(--primary);
+    border-radius: 20px;
+    padding: 6px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 150;
+}
+
+.online-status-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.online-badge {
+    background: var(--primary);
+    color: white;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+.online-disconnect-btn {
+    background: rgba(239, 68, 68, 0.2);
+    border: 1px solid rgba(239, 68, 68, 0.5);
+    color: #ef4444;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+#onlineOpponentName {
+    font-size: 13px;
+    color: var(--text-primary);
+}
+
