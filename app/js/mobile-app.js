@@ -2,7 +2,7 @@
  * 移动端应用主逻辑
  */
 (function() {
-    const APP_VERSION = '1.5.1';
+    const APP_VERSION = '1.5.2';
     const GAMES = [
         { name: '超级玛丽', file: 'Super Mario Bros. (JU) (PRG0) [!].nes', icon: '🍄' },
         { name: '魂斗罗', file: 'hun.nes', icon: '🔫' },
@@ -114,6 +114,15 @@
     }
 
     function checkForUpdates() {
+        // 网页版不显示更新提示
+        if (!window.matchMedia('(display-mode: standalone)').matches && !window.navigator.standalone) {
+            const isWebView = /wv|WebView|Android.*Version\/\d+\.\d+.*Chrome/i.test(navigator.userAgent);
+            if (!isWebView) {
+                console.log('网页版，跳过更新提示');
+                return;
+            }
+        }
+        
         const remoteManifest = 'https://raw.githubusercontent.com/zyf-coder/classic-fc-games/main/app/version.json';
         fetch(`${remoteManifest}?t=${Date.now()}`, { cache: 'no-store' })
             .then(response => response.ok ? response.json() : null)
@@ -650,6 +659,8 @@
         document.getElementById('gameSelectPage').classList.add('active');
     }
 })();
+
+
 
 
 
