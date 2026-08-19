@@ -49,8 +49,8 @@ html, body {
     bottom: 0;
     left: 0;
     right: 0;
-    height: 65px;
-    padding-bottom: 12px;
+    height: 70px;
+    padding-bottom: 16px;
     background: var(--bg-card);
     display: flex;
     z-index: 100;
@@ -728,3 +728,4 @@ html, body {
 
 .profile-label { font-size: 14px; color: var(--text-secondary); }
 .profile-value { font-size: 14px; font-weight: 600; }
+

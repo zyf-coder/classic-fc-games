@@ -1,9 +1,9 @@
 /**
- * 移动端应用主逻辑 v1.6.5
+ * 移动端应用 v1.6.7
  */
 (function() {
-    const APP_VERSION = '1.6.5';
-    const GAMES = [
+    var APP_VERSION = '1.6.7';
+    var GAMES = [
         { name: '超级玛丽', file: 'Super Mario Bros. (JU) (PRG0) [!].nes', icon: '🍄' },
         { name: '魂斗罗', file: 'hun.nes', icon: '🔫' },
         { name: '忍者龙剑传', file: 'Kage.nes', icon: '🥷' },
@@ -27,33 +27,27 @@
         { name: '洛克人', file: '3.nes', icon: '🤖' }
     ];
 
-    let nes = null;
-    let currentGame = null;
-    let isPaused = false;
-    let mainBgm = null;
-    let onlineMultiplayer = null;
-    let isOnlineMode = false;
-    let onlinePlayerId = null;
-    let onlineRoomId = null;
-    let headerTimeout = null;
+    var nes = null;
+    var currentGame = null;
+    var isPaused = false;
+    var mainBgm = null;
+    var onlineMultiplayer = null;
+    var onlinePlayerId = null;
+    var onlineRoomId = null;
+    var headerTimeout = null;
 
-    // 生成设备唯一ID
+    // 设备ID
     function getDeviceId() {
-        let id = localStorage.getItem('device-id');
+        var id = localStorage.getItem('device-id');
         if (!id) {
-            const s = screen.width + 'x' + screen.height;
-            const t = new Date().getTimezoneOffset();
-            const l = navigator.language;
-            const p = navigator.platform;
-            id = btoa(s + t + l + p).replace(/[^a-zA-Z0-9]/g, '').substring(0, 16);
+            id = 'dev-' + Math.random().toString(36).substr(2, 12);
             localStorage.setItem('device-id', id);
         }
         return id;
     }
+    var DEVICE_ID = getDeviceId();
 
-    const DEVICE_ID = getDeviceId();
-
-    // El-Message 样式提示
+    // 消息提示
     function showMessage(text, type) {
         type = type || 'info';
         var icons = { success: '✓', error: '✕', warning: '⚠', info: 'ℹ' };
@@ -61,20 +55,16 @@
         msg.className = 'el-message el-message--' + type;
         msg.innerHTML = '<span class="el-message-icon">' + icons[type] + '</span><span>' + text + '</span>';
         document.body.appendChild(msg);
-        setTimeout(function() {
-            msg.style.opacity = '0';
-            setTimeout(function() { msg.remove(); }, 300);
-        }, 2500);
+        setTimeout(function() { msg.remove(); }, 2500);
     }
 
     // 初始化
     document.addEventListener('DOMContentLoaded', function() {
         initGameGrid();
-        initEventListeners();
-        initBottomTabs();
+        initEvents();
         initDpad();
-        initOnlineMultiplayer();
-        initMainBgm();
+        initOnline();
+        initBgm();
     });
 
     function initGameGrid() {
@@ -84,372 +74,163 @@
             var card = document.createElement('div');
             card.className = 'game-card';
             card.innerHTML = '<div class="game-icon">' + game.icon + '</div><div class="game-name">' + game.name + '</div>';
-            card.addEventListener('click', function() { startGame(game); });
+            card.onclick = function() { startGame(game); };
             grid.appendChild(card);
         });
     }
 
-    function initEventListeners() {
+    function initEvents() {
         // 游戏控制
-        bindClick('backBtn', goBack);
-        bindClick('pauseBtn', togglePause);
-        bindClick('soundBtn', toggleSound);
-        bindClick('resumeBtn', resumeGame);
-        bindClick('restartBtn', restartGame);
-        bindClick('exitBtn', goBack);
+        bind('backBtn', goBack);
+        bind('pauseBtn', togglePause);
+        bind('soundBtn', toggleSound);
+        bind('resumeBtn', resumeGame);
+        bind('restartBtn', restartGame);
+        bind('exitBtn', goBack);
         
-        // 联机控制
-        bindClick('confirmNicknameBtn', confirmNickname);
-        bindClick('nicknameCancelBtn', function() { hideDialog('nicknameDialog'); });
-        bindClick('lobbyBackBtn', function() { switchPage('gameSelectPage'); });
-        bindClick('createRoomBtn', createOnlineRoom);
-        bindClick('joinRoomBtn', joinOnlineRoom);
-        bindClick('refreshRoomListBtn', refreshRoomList);
-        bindClick('roomBackBtn', leaveRoom);
-        bindClick('roomCopyBtn', copyRoomId);
-        bindClick('startGameBtn', startOnlineGame);
-        bindClick('chatSendBtn', sendChatMessage);
-        bindClick('changeNicknameBtn', showNicknameDialog);
+        // 联机
+        bind('confirmNicknameBtn', confirmNickname);
+        bind('nicknameCancelBtn', function() { hide('nicknameDialog'); });
+        bind('lobbyBackBtn', function() { showPage('gameSelectPage'); });
+        bind('createRoomBtn', createRoom);
+        bind('joinRoomBtn', joinRoom);
+        bind('refreshRoomListBtn', refreshRooms);
+        bind('roomBackBtn', leaveRoom);
+        bind('roomCopyBtn', copyRoomId);
+        bind('startGameBtn', startOnlineGame);
+        bind('chatSendBtn', sendChat);
+        bind('changeNicknameBtn', showNickname);
+        bind('aboutBtn', showAbout);
         
-        // 聊天回车
-        var chatInput = document.getElementById('chatInput');
-        if (chatInput) {
-            chatInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') sendChatMessage();
-            });
-        }
+        // Tab切换
+        document.querySelectorAll('.tab-item').forEach(function(tab) {
+            tab.onclick = function() {
+                var page = this.dataset.page;
+                if (page === 'onlineLobbyPage' && !localStorage.getItem('playerNickname')) {
+                    showNickname();
+                    return;
+                }
+                showPage(page);
+            };
+        });
         
-        // 联机大厅标签切换
+        // 联机标签切换
         document.querySelectorAll('.online-tab').forEach(function(tab) {
-            tab.addEventListener('click', function() {
+            tab.onclick = function() {
                 document.querySelectorAll('.online-tab').forEach(function(t) { t.classList.remove('active'); });
                 document.querySelectorAll('.online-panel').forEach(function(p) { p.classList.remove('active'); });
                 this.classList.add('active');
-                var panelId = this.dataset.tab === 'roomList' ? 'roomListPanel' : 
-                              this.dataset.tab === 'createRoom' ? 'createRoomPanel' : 'joinRoomPanel';
-                document.getElementById(panelId).classList.add('active');
-                if (this.dataset.tab === 'roomList') refreshRoomList();
-            });
+                var id = this.dataset.tab === 'roomList' ? 'roomListPanel' : 
+                          this.dataset.tab === 'createRoom' ? 'createRoomPanel' : 'joinRoomPanel';
+                document.getElementById(id).classList.add('active');
+                if (this.dataset.tab === 'roomList') refreshRooms();
+            };
         });
         
-        // 游戏页面点击显示头部
-        var gamePage = document.getElementById('gamePage');
-        if (gamePage) {
-            gamePage.addEventListener('click', function(e) {
-                if (e.target.closest('.dpad-area') || e.target.closest('.action-area') || e.target.closest('.system-btns')) return;
-                toggleHeader();
-            });
-        }
+        // 聊天回车
+        var chatInput = document.getElementById('chatInput');
+        if (chatInput) chatInput.onkeydown = function(e) { if (e.key === 'Enter') sendChat(); };
     }
 
-    function bindClick(id, fn) {
+    function bind(id, fn) {
         var el = document.getElementById(id);
-        if (el) el.addEventListener('click', fn);
+        if (el) el.onclick = fn;
     }
 
-    function initBottomTabs() {
-        document.querySelectorAll('.tab-item').forEach(function(tab) {
-            tab.addEventListener('click', function() {
-                var pageId = this.dataset.page;
-                if (pageId === 'onlineLobbyPage' && !localStorage.getItem('playerNickname')) {
-                    showNicknameDialog();
-                    return;
-                }
-                switchPage(pageId);
-            });
-        });
-    }
-
-    function switchPage(pageId) {
-        document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
-        var page = document.getElementById(pageId);
-        if (page) page.classList.add('active');
-        
-        document.querySelectorAll('.tab-item').forEach(function(t) {
-            t.classList.toggle('active', t.dataset.page === pageId);
-        });
-        
-        // 底部tab显示控制
-        var bottomTabs = document.getElementById('bottomTabs');
-        if (bottomTabs) {
-            bottomTabs.style.display = pageId === 'gamePage' ? 'none' : 'flex';
-        }
-        
-        // 联机大厅初始化
-        if (pageId === 'onlineLobbyPage') {
-            refreshRoomList();
-            var lobbyNick = document.getElementById('lobbyNickname');
-            if (lobbyNick) lobbyNick.textContent = localStorage.getItem('playerNickname') || '';
-        }
-        
-        // 我的页面
-        if (pageId === 'profilePage') {
-            var profileNick = document.getElementById('profileNickname');
-            if (profileNick) profileNick.textContent = localStorage.getItem('playerNickname') || '未设置';
-        }
-    }
-
-    // 方向按键初始化
     function initDpad() {
-        var keyMap = {
-            'dpadUp': 'KEY_UP', 'dpadDown': 'KEY_DOWN', 
+        var keys = {
+            'dpadUp': 'KEY_UP', 'dpadDown': 'KEY_DOWN',
             'dpadLeft': 'KEY_LEFT', 'dpadRight': 'KEY_RIGHT',
             'btnA': 'KEY_A', 'btnB': 'KEY_B',
             'btnSelect': 'KEY_SELECT', 'btnStart': 'KEY_START'
         };
         
-        Object.keys(keyMap).forEach(function(btnId) {
-            var btn = document.getElementById(btnId);
+        Object.keys(keys).forEach(function(id) {
+            var btn = document.getElementById(id);
             if (!btn) return;
+            var key = keys[id];
             
-            var keyName = keyMap[btnId];
-            
-            function press(e) {
+            btn.ontouchstart = function(e) {
                 e.preventDefault();
-                if (nes && nes.keyboard && nes.keyboard.keys) {
-                    nes.keyboard.state1[nes.keyboard.keys[keyName]] = 0x41;
-                }
-            }
-            
-            function release(e) {
+                if (nes && nes.keyboard) nes.keyboard.state1[nes.keyboard.keys[key]] = 0x41;
+            };
+            btn.ontouchend = function(e) {
                 e.preventDefault();
-                if (nes && nes.keyboard && nes.keyboard.keys) {
-                    nes.keyboard.state1[nes.keyboard.keys[keyName]] = 0x40;
-                }
-            }
-            
-            btn.addEventListener('touchstart', press, {passive: false});
-            btn.addEventListener('touchend', release, {passive: false});
-            btn.addEventListener('touchcancel', release, {passive: false});
-            btn.addEventListener('mousedown', press);
-            btn.addEventListener('mouseup', release);
-            btn.addEventListener('mouseleave', release);
+                if (nes && nes.keyboard) nes.keyboard.state1[nes.keyboard.keys[key]] = 0x40;
+            };
+            btn.onmousedown = function() {
+                if (nes && nes.keyboard) nes.keyboard.state1[nes.keyboard.keys[key]] = 0x41;
+            };
+            btn.onmouseup = function() {
+                if (nes && nes.keyboard) nes.keyboard.state1[nes.keyboard.keys[key]] = 0x40;
+            };
         });
     }
 
-    function initMainBgm() {
+    function initBgm() {
         mainBgm = document.getElementById('mainBgm');
-        if (mainBgm) {
-            mainBgm.volume = 0.3;
-            mainBgm.play().catch(function() {});
-        }
+        if (mainBgm) { mainBgm.volume = 0.3; mainBgm.play().catch(function() {}); }
     }
 
-    // 联机功能
-    function initOnlineMultiplayer() {
-        var SUPABASE_URL = 'https://mmkptnjivwnuodzbyjuy.supabase.co';
-        var SUPABASE_KEY = 'sb_publishable_jmAUsKf5jAksds6fpIEaVQ_I8c3SNci';
+    function initOnline() {
+        if (typeof SupabaseMultiplayer === 'undefined') return;
         
-        if (typeof SupabaseMultiplayer === 'undefined') {
-            console.log('SupabaseMultiplayer未加载');
-            return;
-        }
-        
-        onlineMultiplayer = new SupabaseMultiplayer(SUPABASE_URL, SUPABASE_KEY);
+        onlineMultiplayer = new SupabaseMultiplayer(
+            'https://mmkptnjivwnuodzbyjuy.supabase.co',
+            'sb_publishable_jmAUsKf5jAksds6fpIEaVQ_I8c3SNci'
+        );
         
         // 填充游戏选择
-        var gameSelect = document.getElementById('gameSelectOnline');
-        if (gameSelect) {
-            gameSelect.innerHTML = '<option value="">请选择游戏</option>';
-            GAMES.forEach(function(game) {
+        var sel = document.getElementById('gameSelectOnline');
+        if (sel) {
+            sel.innerHTML = '<option value="">请选择游戏</option>';
+            GAMES.forEach(function(g) {
                 var opt = document.createElement('option');
-                opt.value = game.name;
-                opt.textContent = game.name;
-                gameSelect.appendChild(opt);
+                opt.value = g.name;
+                opt.textContent = g.name;
+                sel.appendChild(opt);
             });
         }
         
-        // 设置回调
-        onlineMultiplayer.onRoomCreated = function(roomId) {
-            onlineRoomId = roomId;
-            showRoomPage(roomId, true);
+        onlineMultiplayer.onRoomCreated = function(id) { onlineRoomId = id; showRoom(id, true); };
+        onlineMultiplayer.onRoomJoined = function(d) { onlineRoomId = d.roomId; onlinePlayerId = d.playerId; showRoom(d.roomId, false); };
+        onlineMultiplayer.onPlayerJoined = function(d) {
+            document.getElementById('roomPlayer2').textContent = d.playerName || '玩家2';
+            var btn = document.getElementById('startGameBtn');
+            if (btn) { btn.disabled = false; btn.textContent = '开始游戏'; }
+            addChat('系统', d.playerName + ' 加入了房间');
         };
-        
-        onlineMultiplayer.onRoomJoined = function(data) {
-            onlineRoomId = data.roomId;
-            onlinePlayerId = data.playerId;
-            showRoomPage(data.roomId, false);
-        };
-        
-        onlineMultiplayer.onPlayerJoined = function(data) {
-            var player2 = document.getElementById('roomPlayer2');
-            if (player2) player2.textContent = data.playerName || '玩家2';
-            var startBtn = document.getElementById('startGameBtn');
-            if (startBtn) { startBtn.disabled = false; startBtn.textContent = '开始游戏'; }
-            addChatMessage('系统', data.playerName + ' 加入了房间', false);
-        };
-        
         onlineMultiplayer.onPlayerLeft = function() {
-            addChatMessage('系统', '对手已离开房间', false);
-            var player2 = document.getElementById('roomPlayer2');
-            if (player2) player2.textContent = '等待中...';
-            var startBtn = document.getElementById('startGameBtn');
-            if (startBtn) { startBtn.disabled = true; startBtn.textContent = '等待对手加入...'; }
+            addChat('系统', '对手已离开房间');
+            document.getElementById('roomPlayer2').textContent = '等待中...';
+            var btn = document.getElementById('startGameBtn');
+            if (btn) { btn.disabled = true; btn.textContent = '等待对手加入...'; }
         };
-        
-        onlineMultiplayer.onChatMessage = function(data) {
-            addChatMessage(data.playerName, data.message, data.playerId === onlinePlayerId);
-        };
-        
-        onlineMultiplayer.onError = function(msg) {
-            showMessage(msg, 'error');
-        };
+        onlineMultiplayer.onChatMessage = function(d) { addChat(d.playerName, d.message); };
+        onlineMultiplayer.onError = function(m) { showMessage(m, 'error'); };
     }
 
-    function showNicknameDialog() {
-        var input = document.getElementById('nicknameInput');
-        if (input) input.value = localStorage.getItem('playerNickname') || '';
-        var status = document.getElementById('nicknameStatus');
-        if (status) status.textContent = '';
-        showDialog('nicknameDialog');
-    }
-
-    async function confirmNickname() {
-        var name = document.getElementById('nicknameInput').value.trim();
+    function showPage(id) {
+        document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+        document.getElementById(id).classList.add('active');
+        document.querySelectorAll('.tab-item').forEach(function(t) {
+            t.classList.toggle('active', t.dataset.page === id);
+        });
+        var tabs = document.getElementById('bottomTabs');
+        if (tabs) tabs.style.display = id === 'gamePage' ? 'none' : 'flex';
         
-        if (!name) { showMessage('请输入昵称', 'warning'); return; }
-        if (name.length < 2) { showMessage('昵称至少2个字符', 'warning'); return; }
-        
-        try {
-            var connected = await onlineMultiplayer.init();
-            if (!connected) { showMessage('连接服务器失败', 'error'); return; }
-            
-            var available = await onlineMultiplayer.checkNickname(name);
-            if (!available) { showMessage('该昵称已被使用', 'error'); return; }
-            
-            var registered = await onlineMultiplayer.registerNickname(name, DEVICE_ID);
-            if (registered) {
-                localStorage.setItem('playerNickname', name);
-                onlineMultiplayer.playerName = name;
-                hideDialog('nicknameDialog');
-                showMessage('昵称设置成功', 'success');
-                switchPage('onlineLobbyPage');
-            } else {
-                showMessage('注册失败，请重试', 'error');
-            }
-        } catch (e) {
-            showMessage('操作失败', 'error');
+        if (id === 'onlineLobbyPage') {
+            refreshRooms();
+            var nick = document.getElementById('lobbyNickname');
+            if (nick) nick.textContent = localStorage.getItem('playerNickname') || '';
+        }
+        if (id === 'profilePage') {
+            var pnick = document.getElementById('profileNickname');
+            if (pnick) pnick.textContent = localStorage.getItem('playerNickname') || '未设置';
         }
     }
 
-    async function createOnlineRoom() {
-        var gameName = document.getElementById('gameSelectOnline').value;
-        var name = localStorage.getItem('playerNickname');
-        
-        if (!gameName) { showMessage('请选择游戏', 'warning'); return; }
-        if (!name) { showNicknameDialog(); return; }
-        
-        try {
-            var created = await onlineMultiplayer.createRoom(gameName, name);
-            if (created) {
-                onlinePlayerId = 1;
-                showRoomPage(onlineMultiplayer.roomId, true);
-            } else {
-                showMessage('创建房间失败', 'error');
-            }
-        } catch (e) {
-            showMessage('创建房间失败', 'error');
-        }
-    }
-
-    async function joinOnlineRoom() {
-        var roomId = document.getElementById('roomIdInput').value.toUpperCase();
-        var name = localStorage.getItem('playerNickname');
-        
-        if (!roomId || roomId.length !== 6) { showMessage('请输入6位房间号', 'warning'); return; }
-        if (!name) { showNicknameDialog(); return; }
-        
-        try {
-            var joined = await onlineMultiplayer.joinRoom(roomId, name);
-            if (joined) {
-                onlinePlayerId = 2;
-                showRoomPage(roomId, false);
-            } else {
-                showMessage('加入房间失败', 'error');
-            }
-        } catch (e) {
-            showMessage('加入房间失败', 'error');
-        }
-    }
-
-    async function refreshRoomList() {
-        var roomList = document.getElementById('roomList');
-        if (!roomList) return;
-        roomList.innerHTML = '<div class="room-list-empty">加载中...</div>';
-        
-        try {
-            var rooms = await onlineMultiplayer.getRoomList();
-            if (!rooms || rooms.length === 0) {
-                roomList.innerHTML = '<div class="room-list-empty">暂无房间</div>';
-                return;
-            }
-            roomList.innerHTML = rooms.map(function(room) {
-                return '<div class="room-item"><div class="room-item-info"><div class="room-item-game">' + room.game + '</div><div class="room-item-host">房主: ' + room.player1 + '</div><div class="room-item-id">房间号: ' + room.id + '</div></div><button class="room-item-join" onclick="window.quickJoinRoom(\'' + room.id + '\')">加入</button></div>';
-            }).join('');
-        } catch (e) {
-            roomList.innerHTML = '<div class="room-list-empty">加载失败</div>';
-        }
-    }
-
-    window.quickJoinRoom = async function(roomId) {
-        var name = localStorage.getItem('playerNickname');
-        if (!name) { showNicknameDialog(); return; }
-        var joined = await onlineMultiplayer.joinRoom(roomId, name);
-        if (joined) { onlinePlayerId = 2; showRoomPage(roomId, false); }
-    };
-
-    function showRoomPage(roomId, isHost) {
-        document.getElementById('roomIdDisplay').textContent = roomId;
-        document.getElementById('roomPlayer1').textContent = localStorage.getItem('playerNickname') || '玩家1';
-        document.getElementById('roomPlayer2').textContent = isHost ? '等待中...' : '玩家2';
-        var startBtn = document.getElementById('startGameBtn');
-        if (startBtn) { startBtn.disabled = isHost; startBtn.textContent = isHost ? '等待对手加入...' : '开始游戏'; }
-        switchPage('roomPage');
-        document.getElementById('chatMessages').innerHTML = '<div class="chat-system">欢迎来到房间</div>';
-    }
-
-    function copyRoomId() {
-        var roomId = document.getElementById('roomIdDisplay').textContent;
-        if (navigator.clipboard) {
-            navigator.clipboard.writeText(roomId).then(function() { showMessage('房间号已复制', 'success'); });
-        } else {
-            showMessage('房间号: ' + roomId, 'info');
-        }
-    }
-
-    function sendChatMessage() {
-        var input = document.getElementById('chatInput');
-        var msg = input.value.trim();
-        if (!msg) return;
-        onlineMultiplayer.sendChatMessage(msg);
-        addChatMessage(localStorage.getItem('playerNickname'), msg, true);
-        input.value = '';
-    }
-
-    function addChatMessage(name, msg, isSelf) {
-        var container = document.getElementById('chatMessages');
-        var div = document.createElement('div');
-        div.className = 'chat-message' + (isSelf ? ' self' : '');
-        div.innerHTML = '<div class="chat-message-name">' + name + '</div><div class="chat-message-text">' + msg + '</div>';
-        container.appendChild(div);
-        container.scrollTop = container.scrollHeight;
-    }
-
-    function startOnlineGame() {
-        isOnlineMode = true;
-        var gameName = document.getElementById('gameSelectOnline').value || '超级玛丽';
-        var game = GAMES.find(function(g) { return g.name === gameName; });
-        if (game) startGame(game);
-    }
-
-    function leaveRoom() {
-        if (onlineMultiplayer) onlineMultiplayer.leaveRoom();
-        onlineRoomId = null;
-        onlinePlayerId = null;
-        switchPage('onlineLobbyPage');
-    }
-
-    // 游戏核心功能
+    // 游戏核心
     function startGame(game) {
         currentGame = game;
         if (mainBgm) mainBgm.pause();
@@ -457,44 +238,55 @@
         document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
         document.getElementById('gamePage').classList.add('active');
         document.getElementById('gameTitle').textContent = game.name;
+        document.getElementById('bottomTabs').style.display = 'none';
         
-        // 隐藏底部tab
-        var bottomTabs = document.getElementById('bottomTabs');
-        if (bottomTabs) bottomTabs.style.display = 'none';
-        
-        // 请求横屏
-        requestLandscape();
-        
-        // 加载游戏
-        setTimeout(function() { loadGameROM(game.file); }, 300);
+        setTimeout(function() { loadROM(game.file); }, 300);
     }
 
-    function requestLandscape() {
+    function loadROM(file) {
         try {
-            if (screen.orientation && screen.orientation.lock) {
-                screen.orientation.lock('landscape').then(function() {
-                    console.log('横屏成功');
-                }).catch(function(e) {
-                    console.log('横屏锁定失败:', e);
-                    // 尝试全屏
-                    requestFullscreen();
-                });
-            } else {
-                requestFullscreen();
-            }
+            var emulator = document.getElementById('emulator');
+            emulator.innerHTML = '<canvas width="256" height="240"></canvas>';
+            var canvas = emulator.querySelector('canvas');
+            
+            nes = new JSNES({
+                swfPath: 'js/',
+                onFrame: function(buffer) {
+                    var ctx = canvas.getContext('2d');
+                    var img = ctx.createImageData(256, 240);
+                    for (var i = 0; i < 256 * 240; i++) {
+                        var px = buffer[i];
+                        var idx = i * 4;
+                        img.data[idx] = px & 0xFF;
+                        img.data[idx+1] = (px >> 8) & 0xFF;
+                        img.data[idx+2] = (px >> 16) & 0xFF;
+                        img.data[idx+3] = 255;
+                    }
+                    ctx.putImageData(img, 0, 0);
+                }
+            });
+            
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', 'roms/' + file, true);
+            xhr.responseType = 'arraybuffer';
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    var data = new Uint8Array(xhr.response);
+                    var rom = '';
+                    for (var i = 0; i < data.length; i++) rom += String.fromCharCode(data[i]);
+                    nes.loadRom(rom);
+                    nes.start();
+                    showMessage('游戏加载成功', 'success');
+                } else {
+                    showMessage('游戏加载失败', 'error');
+                }
+            };
+            xhr.onerror = function() { showMessage('网络错误', 'error'); };
+            xhr.send();
         } catch(e) {
-            console.log('横屏请求异常:', e);
-            requestFullscreen();
+            console.error(e);
+            showMessage('游戏初始化失败', 'error');
         }
-    }
-
-    function requestFullscreen() {
-        var el = document.documentElement;
-        try {
-            if (el.requestFullscreen) el.requestFullscreen();
-            else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
-            else if (el.msRequestFullscreen) el.msRequestFullscreen();
-        } catch(e) {}
     }
 
     function goBack() {
@@ -503,25 +295,13 @@
         currentGame = null;
         isPaused = false;
         if (mainBgm) mainBgm.play().catch(function() {});
-        
-        // 恢复竖屏
-        try { if (screen.orientation) screen.orientation.unlock(); } catch(e) {}
-        try { if (document.exitFullscreen) document.exitFullscreen(); } catch(e) {}
-        
-        switchPage('gameSelectPage');
+        showPage('gameSelectPage');
     }
 
     function togglePause() {
         if (!nes) return;
-        if (isPaused) {
-            nes.start();
-            isPaused = false;
-            document.getElementById('pauseOverlay').classList.remove('visible');
-        } else {
-            nes.stop();
-            isPaused = true;
-            document.getElementById('pauseOverlay').classList.add('visible');
-        }
+        if (isPaused) { nes.start(); isPaused = false; document.getElementById('pauseOverlay').classList.remove('visible'); }
+        else { nes.stop(); isPaused = true; document.getElementById('pauseOverlay').classList.add('visible'); }
     }
 
     function resumeGame() {
@@ -543,130 +323,168 @@
         showMessage(nes.opts.emulateSound ? '声音已开启' : '声音已关闭', 'info');
     }
 
-    function toggleHeader() {
-        var header = document.getElementById('gameHeader');
-        if (!header) return;
-        header.classList.toggle('visible');
-        clearTimeout(headerTimeout);
-        if (header.classList.contains('visible')) {
-            headerTimeout = setTimeout(function() { header.classList.remove('visible'); }, 3000);
-        }
+    // 联机功能
+    function showNickname() {
+        document.getElementById('nicknameInput').value = localStorage.getItem('playerNickname') || '';
+        show('nicknameDialog');
     }
 
-    function showDialog(id) {
-        var el = document.getElementById(id);
-        if (el) el.classList.add('visible');
-    }
-
-    function hideDialog(id) {
-        var el = document.getElementById(id);
-        if (el) el.classList.remove('visible');
-    }
-
-    // 加载游戏ROM
-    function loadGameROM(romFile) {
+    async function confirmNickname() {
+        var name = document.getElementById('nicknameInput').value.trim();
+        if (!name) { showMessage('请输入昵称', 'warning'); return; }
+        if (name.length < 2) { showMessage('昵称至少2个字符', 'warning'); return; }
+        
         try {
-            // 初始化NES
-            if (!nes) {
-                nes = new JSNES({
-                    swfPath: 'js/',
-                    ui: {
-                        writeFrame: function(buffer, prevBuffer) {
-                            var canvas = document.querySelector('.emulator canvas');
-                            if (!canvas) return;
-                            var ctx = canvas.getContext('2d');
-                            var imageData = ctx.getImageData(0, 0, 256, 240);
-                            var data = imageData.data;
-                            for (var i = 0; i < 256 * 240; i++) {
-                                var pixel = buffer[i];
-                                if (pixel !== prevBuffer[i]) {
-                                    var j = i * 4;
-                                    data[j] = pixel & 0xFF;
-                                    data[j + 1] = (pixel >> 8) & 0xFF;
-                                    data[j + 2] = (pixel >> 16) & 0xFF;
-                                    data[j + 3] = 0xFF;
-                                    prevBuffer[i] = pixel;
-                                }
-                            }
-                            ctx.putImageData(imageData, 0, 0);
-                        },
-                        writeAudio: function() {},
-                        updateStatus: function(s) {},
-                        enable: function() {}
-                    }
-                });
+            await onlineMultiplayer.init();
+            var ok = await onlineMultiplayer.checkNickname(name);
+            if (!ok) { showMessage('该昵称已被使用', 'error'); return; }
+            
+            var reg = await onlineMultiplayer.registerNickname(name, DEVICE_ID);
+            if (reg) {
+                localStorage.setItem('playerNickname', name);
+                onlineMultiplayer.playerName = name;
+                hide('nicknameDialog');
+                showMessage('昵称设置成功', 'success');
+                showPage('onlineLobbyPage');
+            } else {
+                showMessage('注册失败', 'error');
             }
+        } catch(e) { showMessage('操作失败', 'error'); }
+    }
 
-            // 创建canvas
-            var emulator = document.getElementById('emulator');
-            var canvas = emulator.querySelector('canvas');
-            if (!canvas) {
-                canvas = document.createElement('canvas');
-                canvas.width = 256;
-                canvas.height = 240;
-                emulator.innerHTML = '';
-                emulator.appendChild(canvas);
-            }
+    async function createRoom() {
+        var game = document.getElementById('gameSelectOnline').value;
+        var name = localStorage.getItem('playerNickname');
+        if (!game) { showMessage('请选择游戏', 'warning'); return; }
+        if (!name) { showNickname(); return; }
+        
+        try {
+            var ok = await onlineMultiplayer.createRoom(game, name);
+            if (ok) { onlinePlayerId = 1; showRoom(onlineMultiplayer.roomId, true); }
+            else { showMessage('创建失败', 'error'); }
+        } catch(e) { showMessage('创建失败', 'error'); }
+    }
 
-            // 清空canvas
-            var ctx = canvas.getContext('2d');
-            ctx.fillStyle = '#000';
-            ctx.fillRect(0, 0, 256, 240);
+    async function joinRoom() {
+        var id = document.getElementById('roomIdInput').value.toUpperCase();
+        var name = localStorage.getItem('playerNickname');
+        if (!id || id.length !== 6) { showMessage('请输入6位房间号', 'warning'); return; }
+        if (!name) { showNickname(); return; }
+        
+        try {
+            var ok = await onlineMultiplayer.joinRoom(id, name);
+            if (ok) { onlinePlayerId = 2; showRoom(id, false); }
+            else { showMessage('加入失败', 'error'); }
+        } catch(e) { showMessage('加入失败', 'error'); }
+    }
 
-            // 加载ROM
-            var xhr = new XMLHttpRequest();
-            xhr.open('GET', 'roms/' + romFile, true);
-            xhr.overrideMimeType('text/plain; charset=x-user-defined');
-            xhr.onload = function() {
-                if (xhr.status === 200) {
-                    try {
-                        nes.loadRom(xhr.responseText);
-                        nes.start();
-                        showMessage('游戏加载成功', 'success');
-                    } catch(e) {
-                        showMessage('游戏加载失败', 'error');
-                    }
-                }
-            };
-            xhr.send();
-        } catch(e) {
-            showMessage('游戏初始化失败', 'error');
-        }
+    async function refreshRooms() {
+        var list = document.getElementById('roomList');
+        if (!list) return;
+        list.innerHTML = '<div class="room-list-empty">加载中...</div>';
+        
+        try {
+            var rooms = await onlineMultiplayer.getRoomList();
+            if (!rooms || !rooms.length) { list.innerHTML = '<div class="room-list-empty">暂无房间</div>'; return; }
+            list.innerHTML = rooms.map(function(r) {
+                return '<div class="room-item"><div class="room-item-info"><div class="room-item-game">' + r.game + '</div><div class="room-item-id">房间号: ' + r.id + '</div></div><button class="room-item-join" onclick="window._join(\'' + r.id + '\')">加入</button></div>';
+            }).join('');
+        } catch(e) { list.innerHTML = '<div class="room-list-empty">加载失败</div>'; }
+    }
+
+    window._join = async function(id) {
+        var name = localStorage.getItem('playerNickname');
+        if (!name) { showNickname(); return; }
+        var ok = await onlineMultiplayer.joinRoom(id, name);
+        if (ok) { onlinePlayerId = 2; showRoom(id, false); }
+    };
+
+    function showRoom(id, isHost) {
+        document.getElementById('roomIdDisplay').textContent = id;
+        document.getElementById('roomPlayer1').textContent = localStorage.getItem('playerNickname') || '玩家1';
+        document.getElementById('roomPlayer2').textContent = isHost ? '等待中...' : '玩家2';
+        var btn = document.getElementById('startGameBtn');
+        if (btn) { btn.disabled = isHost; btn.textContent = isHost ? '等待对手加入...' : '开始游戏'; }
+        showPage('roomPage');
+        document.getElementById('chatMessages').innerHTML = '<div class="chat-system">欢迎来到房间</div>';
+    }
+
+    function copyRoomId() {
+        var id = document.getElementById('roomIdDisplay').textContent;
+        if (navigator.clipboard) navigator.clipboard.writeText(id).then(function() { showMessage('已复制', 'success'); });
+        else showMessage('房间号: ' + id, 'info');
+    }
+
+    function sendChat() {
+        var input = document.getElementById('chatInput');
+        var msg = input.value.trim();
+        if (!msg) return;
+        onlineMultiplayer.sendChatMessage(msg);
+        addChat(localStorage.getItem('playerNickname'), msg);
+        input.value = '';
+    }
+
+    function addChat(name, msg) {
+        var c = document.getElementById('chatMessages');
+        var d = document.createElement('div');
+        d.className = 'chat-message';
+        d.innerHTML = '<div class="chat-message-name">' + name + '</div><div class="chat-message-text">' + msg + '</div>';
+        c.appendChild(d);
+        c.scrollTop = c.scrollHeight;
+    }
+
+    function startOnlineGame() {
+        var game = document.getElementById('gameSelectOnline').value || '超级玛丽';
+        var g = GAMES.find(function(x) { return x.name === game; });
+        if (g) startGame(g);
+    }
+
+    function leaveRoom() {
+        if (onlineMultiplayer) onlineMultiplayer.leaveRoom();
+        onlineRoomId = null;
+        onlinePlayerId = null;
+        showPage('onlineLobbyPage');
     }
 
     // 关于我们
-    window.showAbout = function() {
+    function showAbout() {
         var overlay = document.createElement('div');
         overlay.className = 'dialog-overlay visible';
-        overlay.innerHTML = '<div class="dialog-box"><div class="dialog-title">关于我们</div><div style="text-align:center;padding:10px 0;"><p>经典怀旧游戏</p><p>版本: ' + APP_VERSION + '</p><p>FC/NES 经典游戏合集</p></div><div class="dialog-actions"><button class="dialog-btn dialog-btn-confirm" onclick="checkForUpdate()">检查更新</button><button class="dialog-btn dialog-btn-cancel" onclick="this.closest(\'.dialog-overlay\').remove()">关闭</button></div></div>';
+        overlay.innerHTML = '<div class="dialog-box"><div class="dialog-title">关于我们</div><div style="text-align:center;padding:15px 0;"><p style="font-size:16px;font-weight:600;">经典怀旧游戏</p><p style="color:var(--text-secondary);margin-top:8px;">版本: v' + APP_VERSION + '</p><p style="color:var(--text-secondary);margin-top:4px;">FC/NES 经典游戏合集</p></div><div class="dialog-actions"><button class="dialog-btn dialog-btn-confirm" id="checkUpdateBtn">检查更新</button><button class="dialog-btn dialog-btn-cancel" onclick="this.closest(\'.dialog-overlay\').remove()">关闭</button></div></div>';
         document.body.appendChild(overlay);
-    };
+        
+        document.getElementById('checkUpdateBtn').onclick = function() {
+            overlay.remove();
+            checkUpdate();
+        };
+    }
 
-    // 检查更新
-    window.checkForUpdate = function() {
+    function checkUpdate() {
+        showMessage('正在检查更新...', 'info');
         fetch('https://raw.githubusercontent.com/zyf-coder/classic-fc-games/main/app/version.json?t=' + Date.now())
             .then(function(r) { return r.json(); })
             .then(function(remote) {
                 var local = APP_VERSION.split('.').map(Number);
-                var remote_v = remote.version.split('.').map(Number);
+                var rv = remote.version.split('.').map(Number);
                 var hasUpdate = false;
                 for (var i = 0; i < 3; i++) {
-                    if (remote_v[i] > local[i]) { hasUpdate = true; break; }
-                    if (remote_v[i] < local[i]) break;
+                    if (rv[i] > local[i]) { hasUpdate = true; break; }
+                    if (rv[i] < local[i]) break;
                 }
                 if (hasUpdate) {
-                    showMessage('发现新版本 v' + remote.version, 'info');
+                    showMessage('发现新版本 v' + remote.version, 'warning');
                     setTimeout(function() {
                         if (confirm('发现新版本 v' + remote.version + '，是否下载？')) {
                             window.open('https://raw.githubusercontent.com/zyf-coder/classic-fc-games/main/classic-fc-games.apk');
                         }
                     }, 500);
                 } else {
-                    showMessage('已是最新版本', 'success');
+                    showMessage('当前已是最新版本', 'success');
                 }
             })
             .catch(function() { showMessage('检查更新失败', 'error'); });
-    };
+    }
+
+    function show(id) { document.getElementById(id).classList.add('visible'); }
+    function hide(id) { document.getElementById(id).classList.remove('visible'); }
 })();
-
-
