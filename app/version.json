@@ -1,9 +1,10 @@
 {
-  "version": "1.5.5",
-  "versionCode": 23,
+  "version": "1.6.0",
+  "versionCode": 24,
   "downloadUrl": "https://raw.githubusercontent.com/zyf-coder/classic-fc-games/main/classic-fc-games.apk",
-  "notes": "完整修复联机功能"
+  "notes": "联机功能完整重写：昵称、大厅、房间、聊天"
 }
+
 
 
 

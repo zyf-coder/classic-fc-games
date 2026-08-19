@@ -24,75 +24,104 @@
 <body>
     <audio id="mainBgm" src="cf.mp4" loop preload="auto"></audio>
 
-<!-- 联机对话框 -->
-<div id="onlineDialog" class="online-dialog">
-    <div class="online-dialog-content">
-        <div class="online-dialog-header">
-            <h2>联机对战</h2>
-            <button class="online-dialog-close" id="onlineDialogClose">×</button>
-        </div>
-        
-        <div class="online-tabs">
-            <button class="online-tab active" data-tab="create">创建房间</button>
-            <button class="online-tab" data-tab="join">加入房间</button>
-        </div>
-        
-        <div id="createRoomPanel" class="online-panel active">
-            <div class="online-form-group">
-                <label>你的昵称</label>
-                <input type="text" id="playerNameCreate" placeholder="输入昵称" maxlength="10">
+    <!-- 昵称设置弹窗 -->
+    <div id="nicknameDialog" class="online-dialog">
+        <div class="online-dialog-content">
+            <div class="online-dialog-header">
+                <h2>设置昵称</h2>
             </div>
             <div class="online-form-group">
-                <label>选择游戏</label>
-                <select id="gameSelectOnline"></select>
+                <label>输入你的游戏昵称（唯一）</label>
+                <input type="text" id="nicknameInput" placeholder="请输入昵称" maxlength="10">
+                <div id="nicknameStatus" class="nickname-status"></div>
             </div>
-            <button class="online-btn online-btn-primary" id="createRoomBtn">创建房间</button>
+            <button class="online-btn online-btn-primary" id="confirmNicknameBtn">确认</button>
         </div>
-        
-        <div id="joinRoomPanel" class="online-panel">
-            <div class="online-form-group">
-                <label>你的昵称</label>
-                <input type="text" id="playerNameJoin" placeholder="输入昵称" maxlength="10">
+    </div>
+
+    <!-- 联机大厅页面 -->
+    <div id="onlineLobbyPage" class="page">
+        <div class="lobby-container">
+            <div class="lobby-header">
+                <button class="lobby-back-btn" id="lobbyBackBtn">
+                    <svg viewBox="0 0 24 24" width="24" height="24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" fill="currentColor"/></svg>
+                </button>
+                <h2>联机大厅</h2>
+                <div class="lobby-nickname" id="lobbyNickname"></div>
             </div>
-            <div class="online-form-group">
-                <label>房间号</label>
-                <input type="text" id="roomIdInput" placeholder="输入6位房间号" maxlength="6" style="text-transform: uppercase;">
+            
+            <div class="online-tabs">
+                <button class="online-tab active" data-tab="roomList">房间列表</button>
+                <button class="online-tab" data-tab="createRoom">创建房间</button>
+                <button class="online-tab" data-tab="joinRoom">输入房间号</button>
             </div>
-            <button class="online-btn online-btn-primary" id="joinRoomBtn">加入房间</button>
+            
+            <div id="roomListPanel" class="online-panel active">
+                <div class="room-list" id="roomList">
+                    <div class="room-list-empty">暂无房间，快去创建吧</div>
+                </div>
+                <button class="online-btn online-btn-secondary" id="refreshRoomListBtn">刷新列表</button>
+            </div>
+            
+            <div id="createRoomPanel" class="online-panel">
+                <div class="online-form-group">
+                    <label>选择游戏</label>
+                    <select id="gameSelectOnline"></select>
+                </div>
+                <button class="online-btn online-btn-primary" id="createRoomBtn">创建房间</button>
+            </div>
+            
+            <div id="joinRoomPanel" class="online-panel">
+                <div class="online-form-group">
+                    <label>房间号</label>
+                    <input type="text" id="roomIdInput" placeholder="输入6位房间号" maxlength="6" style="text-transform: uppercase;">
+                </div>
+                <button class="online-btn online-btn-primary" id="joinRoomBtn">加入房间</button>
+            </div>
         </div>
-        
-        <div id="waitingPanel" class="online-panel">
-            <div class="waiting-info">
-                <div class="waiting-icon">🎮</div>
-                <div class="waiting-text">等待玩家加入...</div>
-                <div class="waiting-room-id">房间号: <span id="waitingRoomId"></span></div>
+    </div>
+
+    <!-- 房间页面 -->
+    <div id="roomPage" class="page">
+        <div class="room-container">
+            <div class="room-header">
+                <button class="room-back-btn" id="roomBackBtn">
+                    <svg viewBox="0 0 24 24" width="24" height="24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" fill="currentColor"/></svg>
+                </button>
+                <div class="room-info">
+                    <div class="room-id-display">房间号: <span id="roomIdDisplay"></span></div>
+                    <div class="room-game-name" id="roomGameName"></div>
+                </div>
+                <button class="room-copy-btn" id="roomCopyBtn">复制房间号</button>
             </div>
-            <button class="online-btn online-btn-secondary" id="copyRoomIdBtn">复制房间号</button>
-            <button class="online-btn online-btn-danger" id="cancelWaitingBtn">取消</button>
-        </div>
-        
-        <div id="connectedPanel" class="online-panel">
-            <div class="connected-info">
-                <div class="connected-icon">✅</div>
-                <div class="connected-text">玩家已加入！</div>
-                <div class="connected-players">
-                    <span id="player1Name">玩家1</span> VS <span id="player2Name">玩家2</span>
+            
+            <div class="room-players">
+                <div class="room-player player1">
+                    <div class="player-avatar">🎮</div>
+                    <div class="player-name" id="roomPlayer1">等待中...</div>
+                </div>
+                <div class="room-vs">VS</div>
+                <div class="room-player player2">
+                    <div class="player-avatar">🎮</div>
+                    <div class="player-name" id="roomPlayer2">等待中...</div>
                 </div>
             </div>
-            <button class="online-btn online-btn-primary" id="startOnlineGameBtn">开始游戏</button>
-            <button class="online-btn online-btn-danger" id="leaveRoomBtn">离开房间</button>
+            
+            <div class="room-chat">
+                <div class="chat-messages" id="chatMessages">
+                    <div class="chat-system">欢迎来到房间</div>
+                </div>
+                <div class="chat-input-area">
+                    <input type="text" id="chatInput" placeholder="输入消息..." maxlength="100">
+                    <button id="chatSendBtn">发送</button>
+                </div>
+            </div>
+            
+            <div class="room-actions">
+                <button class="online-btn online-btn-primary" id="startGameBtn" disabled>等待对手加入...</button>
+            </div>
         </div>
     </div>
-</div>
-
-<!-- 联机状态栏 -->
-<div id="onlineStatusBar" class="online-status-bar" style="display: none;">
-    <div class="online-status-info">
-        <span class="online-badge">联机中</span>
-        <span id="onlineOpponentName">对手</span>
-    </div>
-    <button class="online-disconnect-btn" id="onlineDisconnectBtn">断开</button>
-</div>
 
     <!-- 游戏选择页面 -->
     <div id="gameSelectPage" class="page active">
@@ -111,10 +140,9 @@
                     </div>
                 </div>
             </div>
-            <div class="game-grid" id="gameGrid">
-                <!-- 游戏卡片将通过JS动态生成 -->
-            </div>
+            <div class="game-grid" id="gameGrid"></div>
             <div class="footer">
+                <p>触摸屏幕开始游戏 · 左侧摇杆控制方向 · 右侧按钮操作</p>
             </div>
             <div class="online-entry">
                 <button class="online-entry-btn" id="onlineEntryBtn">
@@ -127,7 +155,6 @@
 
     <!-- 游戏页面 -->
     <div id="gamePage" class="page">
-        <!-- 顶部菜单栏 -->
         <div class="game-header" id="gameHeader">
             <button class="header-btn back-btn" id="backBtn">
                 <svg viewBox="0 0 24 24" width="20" height="20"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" fill="currentColor"/></svg>
@@ -156,12 +183,10 @@
             <button class="settings-close" id="settingsClose">完成</button>
         </div>
 
-        <!-- 游戏屏幕 -->
         <div class="game-screen-container">
             <div id="emulator" class="emulator"></div>
         </div>
 
-        <!-- 左侧虚拟摇杆 -->
         <div class="joystick-area" id="joystickArea">
             <div class="joystick-base" id="joystickBase">
                 <div class="joystick-stick" id="joystickStick"></div>
@@ -174,14 +199,9 @@
             </div>
         </div>
 
-        <!-- 右侧操作按钮 -->
         <div class="action-area" id="actionArea">
-            <button class="action-btn btn-b" id="btnB">
-                <span>B</span>
-            </button>
-            <button class="action-btn btn-a" id="btnA">
-                <span>A</span>
-            </button>
+            <button class="action-btn btn-b" id="btnB"><span>B</span></button>
+            <button class="action-btn btn-a" id="btnA"><span>A</span></button>
         </div>
 
         <div class="system-btns">
@@ -189,7 +209,6 @@
             <button class="system-btn" id="btnStart"><span>开始</span></button>
         </div>
 
-        <!-- 暂停菜单 -->
         <div class="pause-overlay" id="pauseOverlay">
             <div class="pause-menu">
                 <h2>游戏暂停</h2>
@@ -198,6 +217,15 @@
                 <button class="menu-btn" id="exitBtn">退出游戏</button>
             </div>
         </div>
+    </div>
+
+    <!-- 联机状态栏 -->
+    <div id="onlineStatusBar" class="online-status-bar" style="display: none;">
+        <div class="online-status-info">
+            <span class="online-badge">联机中</span>
+            <span id="onlineOpponentName">对手</span>
+        </div>
+        <button class="online-disconnect-btn" id="onlineDisconnectBtn">断开</button>
     </div>
 
     <script src="js/jquery-1.4.2.min.js" type="text/javascript"></script>
@@ -211,26 +239,17 @@
     <script src="js/ppu.js" type="text/javascript"></script>
     <script src="js/rom.js" type="text/javascript"></script>
     <script src="js/ui.js" type="text/javascript"></script>
-<script src="js/supabase-multiplayer.js"></script>
+    <script src="js/supabase-multiplayer.js" type="text/javascript"></script>
     <script src="js/mobile-touch.js" type="text/javascript"></script>
     <script src="js/mobile-app.js" type="text/javascript"></script>
     <script>
-        // 注册 Service Worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('sw.js')
-                    .then(registration => {
-                        console.log('SW 注册成功:', registration.scope);
-                    })
-                    .catch(err => {
-                        console.log('SW 注册失败:', err);
-                    });
+                    .then(registration => console.log('SW 注册成功:', registration.scope))
+                    .catch(err => console.log('SW 注册失败:', err));
             });
         }
     </script>
 </body>
 </html>
-
-
-
-
