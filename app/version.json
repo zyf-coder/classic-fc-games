@@ -1,9 +1,10 @@
 {
-  "version": "1.5.4",
-  "versionCode": 22,
+  "version": "1.5.5",
+  "versionCode": 23,
   "downloadUrl": "https://raw.githubusercontent.com/zyf-coder/classic-fc-games/main/classic-fc-games.apk",
-  "notes": "修复Service Worker缓存问题"
+  "notes": "完整修复联机功能"
 }
+
 
 
 

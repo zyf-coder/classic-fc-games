@@ -1,6 +1,6 @@
 {
   "name": "classic-fc-games",
-  "version": "1.5.4",
+  "version": "1.5.5",
   "private": true,
   "scripts": {
     "android:sync": "cap sync android",
@@ -14,6 +14,7 @@
     "@capacitor/cli": "6.2.1"
   }
 }
+
 
 
 

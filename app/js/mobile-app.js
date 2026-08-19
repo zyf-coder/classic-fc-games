@@ -2,7 +2,7 @@
  * 移动端应用主逻辑
  */
 (function() {
-    const APP_VERSION = '1.5.3';
+    const APP_VERSION = '1.5.5';
     const GAMES = [
         { name: '超级玛丽', file: 'Super Mario Bros. (JU) (PRG0) [!].nes', icon: '🍄' },
         { name: '魂斗罗', file: 'hun.nes', icon: '🔫' },
@@ -383,6 +383,131 @@
         disconnectOnline();
     }
     
+
+    // 显示大厅
+    async function showLobby() {
+        // 填充游戏选择
+        const gameSelect = document.getElementById('gameSelectOnline');
+        if (gameSelect && gameSelect.options.length <= 1) {
+            GAMES.forEach(game => {
+                const option = document.createElement('option');
+                option.value = game.name;
+                option.textContent = game.name;
+                gameSelect.appendChild(option);
+            });
+        }
+        
+        // 显示昵称
+        document.getElementById('lobbyNickname').textContent = localStorage.getItem('playerNickname') || '';
+        
+        // 切换到大厅页面
+        document.getElementById('gameSelectPage').classList.remove('active');
+        document.getElementById('onlineLobbyPage').classList.add('active');
+        
+        refreshRoomList();
+    }
+    
+    // 刷新房间列表
+    async function refreshRoomList() {
+        const roomList = document.getElementById('roomList');
+        roomList.innerHTML = '<div class="room-list-empty">加载中...</div>';
+        
+        try {
+            const rooms = await onlineMultiplayer.getRoomList();
+            console.log('获取到房间列表:', rooms);
+            
+            if (!rooms || rooms.length === 0) {
+                roomList.innerHTML = '<div class="room-list-empty">暂无房间，快去创建吧</div>';
+                return;
+            }
+            
+            roomList.innerHTML = rooms.map(room => `
+                <div class="room-item">
+                    <div class="room-item-info">
+                        <div class="room-item-game">${room.game}</div>
+                        <div class="room-item-host">房主: ${room.player1}</div>
+                        <div class="room-item-id">房间号: ${room.id}</div>
+                    </div>
+                    <button class="room-item-join" onclick="quickJoinRoom('${room.id}', '${room.game}')">加入</button>
+                </div>
+            `).join('');
+        } catch (e) {
+            console.error('刷新房间列表异常:', e);
+            roomList.innerHTML = '<div class="room-list-empty">加载失败，请重试</div>';
+        }
+    }
+    
+    // 快速加入房间
+    window.quickJoinRoom = async function(roomId, gameName) {
+        const name = localStorage.getItem('playerNickname');
+        if (!name) {
+            showNicknameDialog();
+            return;
+        }
+        
+        const joined = await onlineMultiplayer.joinRoom(roomId, name);
+        if (joined) {
+            onlinePlayerId = 2;
+            showRoomPage(roomId, false);
+        }
+    };
+    
+    // 显示房间页面
+    function showRoomPage(roomId, isHost) {
+        // 隐藏大厅页面
+        document.getElementById('onlineLobbyPage')?.classList.remove('active');
+        
+        document.getElementById('roomIdDisplay').textContent = roomId;
+        document.getElementById('roomPlayer1').textContent = localStorage.getItem('playerNickname') || '玩家1';
+        document.getElementById('roomPlayer2').textContent = isHost ? '等待中...' : localStorage.getItem('playerNickname') || '玩家2';
+        
+        if (isHost) {
+            document.getElementById('startGameBtn').disabled = true;
+            document.getElementById('startGameBtn').textContent = '等待对手加入...';
+        } else {
+            document.getElementById('startGameBtn').disabled = false;
+            document.getElementById('startGameBtn').textContent = '开始游戏';
+        }
+        
+        document.getElementById('gameSelectPage').classList.remove('active');
+        document.getElementById('roomPage').classList.add('active');
+        
+        // 清空聊天
+        document.getElementById('chatMessages').innerHTML = '<div class="chat-system">欢迎来到房间</div>';
+    }
+    
+    // 发送聊天消息
+    function sendChatMessage() {
+        const input = document.getElementById('chatInput');
+        const message = input.value.trim();
+        if (!message) return;
+        
+        onlineMultiplayer.sendChatMessage(message);
+        addChatMessage(localStorage.getItem('playerNickname'), message, true);
+        input.value = '';
+    }
+    
+    // 添加聊天消息
+    function addChatMessage(name, message, isSelf) {
+        const chatMessages = document.getElementById('chatMessages');
+        const div = document.createElement('div');
+        div.className = 'chat-message' + (isSelf ? ' self' : '');
+        div.innerHTML = `
+            <div class="chat-message-name">${name}</div>
+            <div class="chat-message-text">${message}</div>
+        `;
+        chatMessages.appendChild(div);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    
+    // 离开房间
+    function leaveRoom() {
+        onlineMultiplayer?.leaveRoom();
+        document.getElementById('roomPage').classList.remove('active');
+        document.getElementById('gameSelectPage').classList.add('active');
+        onlineRoomId = null;
+        onlinePlayerId = null;
+    }
     // 断开联机
     function disconnectOnline() {
         isOnlineMode = false;
@@ -679,6 +804,21 @@
 
 
 
+
+
+
+
+
+
+
+
+    // 显示/隐藏对话框
+    function showDialog(id) {
+        document.getElementById(id)?.classList.add('visible');
+    }
+    function hideDialog(id) {
+        document.getElementById(id)?.classList.remove('visible');
+    }
 
 
 
