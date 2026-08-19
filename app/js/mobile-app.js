@@ -248,35 +248,46 @@
             var emulator = document.getElementById('emulator');
             emulator.innerHTML = '<canvas width="256" height="240"></canvas>';
             var canvas = emulator.querySelector('canvas');
+            var ctx = canvas.getContext('2d');
+            var imageData = ctx.createImageData(256, 240);
             
-            nes = new JSNES({
-                swfPath: 'js/',
-                onFrame: function(buffer) {
-                    var ctx = canvas.getContext('2d');
-                    var img = ctx.createImageData(256, 240);
+            // 创建UI对象
+            var ui = {
+                writeFrame: function(buffer, prevBuffer) {
+                    var data = imageData.data;
                     for (var i = 0; i < 256 * 240; i++) {
-                        var px = buffer[i];
-                        var idx = i * 4;
-                        img.data[idx] = px & 0xFF;
-                        img.data[idx+1] = (px >> 8) & 0xFF;
-                        img.data[idx+2] = (px >> 16) & 0xFF;
-                        img.data[idx+3] = 255;
+                        var pixel = buffer[i];
+                        if (pixel !== prevBuffer[i]) {
+                            var j = i * 4;
+                            data[j] = pixel & 0xFF;
+                            data[j + 1] = (pixel >> 8) & 0xFF;
+                            data[j + 2] = (pixel >> 16) & 0xFF;
+                            data[j + 3] = 0xFF;
+                            prevBuffer[i] = pixel;
+                        }
                     }
-                    ctx.putImageData(img, 0, 0);
-                }
-            });
+                    ctx.putImageData(imageData, 0, 0);
+                },
+                writeAudio: function() {},
+                updateStatus: function(s) { console.log('NES:', s); },
+                enable: function() {}
+            };
+            
+            nes = new JSNES({ ui: ui });
             
             var xhr = new XMLHttpRequest();
             xhr.open('GET', 'roms/' + file, true);
-            xhr.responseType = 'arraybuffer';
+            xhr.overrideMimeType('text/plain; charset=x-user-defined');
             xhr.onload = function() {
                 if (xhr.status === 200) {
-                    var data = new Uint8Array(xhr.response);
-                    var rom = '';
-                    for (var i = 0; i < data.length; i++) rom += String.fromCharCode(data[i]);
-                    nes.loadRom(rom);
-                    nes.start();
-                    showMessage('游戏加载成功', 'success');
+                    try {
+                        nes.loadRom(xhr.responseText);
+                        nes.start();
+                        showMessage('游戏加载成功', 'success');
+                    } catch(e) {
+                        console.error('ROM加载失败:', e);
+                        showMessage('ROM加载失败', 'error');
+                    }
                 } else {
                     showMessage('游戏加载失败', 'error');
                 }
@@ -284,7 +295,7 @@
             xhr.onerror = function() { showMessage('网络错误', 'error'); };
             xhr.send();
         } catch(e) {
-            console.error(e);
+            console.error('初始化失败:', e);
             showMessage('游戏初始化失败', 'error');
         }
     }
@@ -488,3 +499,4 @@
     function show(id) { document.getElementById(id).classList.add('visible'); }
     function hide(id) { document.getElementById(id).classList.remove('visible'); }
 })();
+
