@@ -1,9 +1,10 @@
 {
-  "version": "1.4.0",
-  "versionCode": 17,
+  "version": "1.5.0",
+  "versionCode": 18,
   "downloadUrl": "https://raw.githubusercontent.com/zyf-coder/classic-fc-games/main/classic-fc-games.apk",
-  "notes": "联机功能升级，使用Supabase实现稳定连接"
+  "notes": "联机功能完整升级：昵称系统、房间列表、聊天功能"
 }
+
 
 
 

@@ -901,3 +901,240 @@ html, body {
     font-size: 15px;
     font-weight: 600;
 }
+
+/* 昵称状态 */
+.nickname-status {
+    font-size: 12px;
+    margin-top: 4px;
+    min-height: 18px;
+}
+.nickname-status.available { color: #10b981; }
+.nickname-status.taken { color: #ef4444; }
+
+/* 联机大厅 */
+.online-lobby-content {
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 房间列表 */
+.room-list {
+    flex: 1;
+    overflow-y: auto;
+    margin: 10px 0;
+    min-height: 200px;
+}
+
+.room-list-empty {
+    text-align: center;
+    color: var(--text-secondary);
+    padding: 40px 0;
+}
+
+.room-item {
+    background: var(--bg-surface);
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.room-item-info {
+    flex: 1;
+}
+
+.room-item-game {
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+.room-item-host {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.room-item-id {
+    font-size: 11px;
+    color: var(--primary);
+}
+
+.room-item-join {
+    background: var(--primary);
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+/* 房间界面 */
+.room-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+}
+
+.room-header {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    background: rgba(0,0,0,0.3);
+    gap: 12px;
+}
+
+.room-back-btn {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 4px;
+}
+
+.room-info {
+    flex: 1;
+}
+
+.room-id-display {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--primary);
+    letter-spacing: 2px;
+}
+
+.room-game-name {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.room-copy-btn {
+    background: var(--primary);
+    border: none;
+    color: white;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.room-players {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 30px 20px;
+    gap: 20px;
+}
+
+.room-player {
+    text-align: center;
+}
+
+.player-avatar {
+    font-size: 48px;
+    margin-bottom: 8px;
+}
+
+.player-name {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.room-vs {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-secondary);
+}
+
+/* 聊天区域 */
+.room-chat {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    margin: 0 16px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.chat-system {
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-secondary);
+    padding: 4px;
+}
+
+.chat-message {
+    background: var(--bg-surface);
+    padding: 8px 12px;
+    border-radius: 8px;
+    max-width: 80%;
+}
+
+.chat-message.self {
+    align-self: flex-end;
+    background: var(--primary);
+}
+
+.chat-message-name {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-bottom: 2px;
+}
+
+.chat-message-text {
+    font-size: 14px;
+}
+
+.chat-input-area {
+    display: flex;
+    padding: 12px;
+    gap: 8px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.chat-input-area input {
+    flex: 1;
+    background: var(--bg-surface);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 10px;
+    color: white;
+    font-size: 14px;
+}
+
+.chat-input-area button {
+    background: var(--primary);
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.room-actions {
+    padding: 16px;
+}
+
+.room-actions .online-btn {
+    margin: 0;
+}
+
+.room-actions .online-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
