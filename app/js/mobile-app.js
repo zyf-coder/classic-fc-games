@@ -269,10 +269,14 @@
                 canvasImageData.data[i] = 0xFF;
             }
             
-            // 创建UI对象
-            var ui = {
-                writeFrame: function(buffer, prevBuffer) {
-                    var imageData = canvasImageData.data;
+            // 创建UI构造函数
+            var GameUI = function(nesInstance) {
+                this.nes = nesInstance;
+                this.canvasImageData = canvasImageData;
+                this.ctx = ctx;
+                
+                this.writeFrame = function(buffer, prevBuffer) {
+                    var imageData = this.canvasImageData.data;
                     var pixel, i, j;
                     for (i = 0; i < 256 * 240; i++) {
                         pixel = buffer[i];
@@ -284,14 +288,15 @@
                             prevBuffer[i] = pixel;
                         }
                     }
-                    ctx.putImageData(canvasImageData, 0, 0);
-                },
-                writeAudio: function() {},
-                updateStatus: function(s) { console.log('NES:', s); },
-                enable: function() {}
+                    this.ctx.putImageData(this.canvasImageData, 0, 0);
+                };
+                
+                this.writeAudio = function() {};
+                this.updateStatus = function(s) { console.log('NES:', s); };
+                this.enable = function() {};
             };
             
-            nes = new JSNES({ ui: ui });
+            nes = new JSNES({ ui: GameUI });
             
             var xhr = new XMLHttpRequest();
             xhr.open('GET', 'roms/' + file, true);
@@ -523,6 +528,7 @@
     function show(id) { document.getElementById(id).classList.add('visible'); }
     function hide(id) { document.getElementById(id).classList.remove('visible'); }
 })();
+
 
 
 
