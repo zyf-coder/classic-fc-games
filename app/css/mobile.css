@@ -1,16 +1,12 @@
-/* 经典怀旧游戏 - 移动端样式 */
+/* 经典怀旧游戏 v1.6.5 */
 
 :root {
-    --side-margin: 16px;
     --primary: #6366f1;
-    --primary-dark: #4f46e5;
     --bg-dark: #0f172a;
     --bg-card: #1e293b;
     --bg-surface: #334155;
     --text-primary: #f8fafc;
     --text-secondary: #94a3b8;
-    --btn-a: #ef4444;
-    --btn-b: #f97316;
 }
 
 * {
@@ -27,7 +23,7 @@ html, body {
     width: 100%;
     height: 100%;
     overflow: hidden;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
     background: var(--bg-dark);
     color: var(--text-primary);
 }
@@ -40,22 +36,21 @@ html, body {
     width: 100%;
     height: 100%;
     display: none;
-    opacity: 0;
-    transition: opacity 0.2s ease;
 }
 
 .page.active {
     display: flex;
-    opacity: 1;
+    flex-direction: column;
 }
 
-/* 底部Tab栏 */
+/* 底部Tab栏 - 向下调整避开摄像头 */
 .bottom-tabs {
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
-    height: 56px;
+    height: 65px;
+    padding-bottom: 12px;
     background: var(--bg-card);
     display: flex;
     z-index: 100;
@@ -68,12 +63,12 @@ html, body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 2px;
+    gap: 4px;
     background: none;
     border: none;
     color: var(--text-secondary);
     cursor: pointer;
-    transition: color 0.2s;
+    font-size: 11px;
 }
 
 .tab-item.active {
@@ -85,30 +80,24 @@ html, body {
     height: 24px;
 }
 
-.tab-item span {
-    font-size: 11px;
-}
-
 /* 游戏选择页面 */
 .game-select-container {
-    width: 100%;
-    height: 100%;
+    flex: 1;
     display: flex;
     flex-direction: column;
-    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
-    padding-bottom: 56px;
+    background: linear-gradient(135deg, #0f172a, #1e1b4b, #0f172a);
+    overflow: hidden;
 }
 
 .header {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
+    padding: 24px 20px 16px;
+    text-align: center;
 }
 
 .logo {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 12px;
 }
 
@@ -134,9 +123,9 @@ html, body {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 12px;
-    padding: 0 16px 16px;
+    padding: 0 16px 80px;
     overflow-y: auto;
-    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
 }
 
 .game-grid::-webkit-scrollbar { display: none; }
@@ -144,16 +133,14 @@ html, body {
 .game-card {
     background: var(--bg-card);
     border-radius: 12px;
-    padding: 16px 12px;
+    padding: 16px 8px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    gap: 8px;
     cursor: pointer;
-    transition: all 0.2s ease;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    min-height: 100px;
-    gap: 10px;
+    border: 1px solid rgba(255,255,255,0.05);
+    min-height: 90px;
 }
 
 .game-card:active {
@@ -163,46 +150,44 @@ html, body {
 }
 
 .game-card .game-icon {
-    font-size: 36px;
+    font-size: 32px;
 }
 
 .game-card .game-name {
-    font-size: 12px;
-    text-align: center;
+    font-size: 11px;
     font-weight: 600;
+    text-align: center;
 }
 
-/* 游戏页面 */
+/* 游戏页面 - 全屏横屏 */
 #gamePage {
-    flex-direction: column;
     background: #000;
 }
 
 .game-header {
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
     right: 0;
     height: 50px;
+    padding: 8px 20px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 20px;
-    padding-top: env(safe-area-inset-top, 10px);
-    background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+    background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent);
     z-index: 100;
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.3s;
 }
 
 .game-header.visible { opacity: 1; }
 
 .header-btn {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255,255,255,0.2);
     border: none;
     border-radius: 10px;
-    width: 40px;
-    height: 40px;
+    width: 42px;
+    height: 42px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -220,12 +205,13 @@ html, body {
     font-weight: 600;
 }
 
+/* 游戏画面容器 */
 .game-screen-container {
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
-    right: 0;
-    bottom: 0;
+    width: 100%;
+    height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -245,37 +231,39 @@ html, body {
     max-height: 100%;
     object-fit: contain;
     image-rendering: pixelated;
+    image-rendering: crisp-edges;
 }
+
+.nes-status, .nes-roms, .nes-controls { display: none !important; }
 
 /* 方向按键 */
 .dpad-area {
     position: fixed;
-    bottom: 30px;
-    left: 20px;
-    width: 140px;
-    height: 140px;
+    bottom: 40px;
+    left: 24px;
+    width: 150px;
+    height: 150px;
     z-index: 200;
 }
 
 .dpad-btn {
     position: absolute;
-    width: 50px;
-    height: 50px;
-    background: rgba(255, 255, 255, 0.15);
-    border: 2px solid rgba(255, 255, 255, 0.25);
-    border-radius: 12px;
-    color: rgba(255, 255, 255, 0.8);
-    font-size: 18px;
+    width: 52px;
+    height: 52px;
+    background: rgba(255,255,255,0.12);
+    border: 2px solid rgba(255,255,255,0.2);
+    border-radius: 14px;
+    color: rgba(255,255,255,0.8);
+    font-size: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.1s ease;
 }
 
 .dpad-btn:active {
-    background: rgba(255, 255, 255, 0.3);
-    transform: scale(0.95);
+    background: rgba(255,255,255,0.3);
+    transform: scale(0.9);
 }
 
 .dpad-up { top: 0; left: 50%; transform: translateX(-50%); }
@@ -283,25 +271,30 @@ html, body {
 .dpad-down { bottom: 0; left: 50%; transform: translateX(-50%); }
 .dpad-left { top: 50%; left: 0; transform: translateY(-50%); }
 
+.dpad-up:active { transform: translateX(-50%) scale(0.9); }
+.dpad-right:active { transform: translateY(-50%) scale(0.9); }
+.dpad-down:active { transform: translateX(-50%) scale(0.9); }
+.dpad-left:active { transform: translateY(-50%) scale(0.9); }
+
 /* 操作按钮 */
 .action-area {
     position: fixed;
-    bottom: 30px;
-    right: 20px;
+    bottom: 40px;
+    right: 24px;
+    width: 130px;
+    height: 130px;
     z-index: 200;
-    width: 120px;
-    height: 120px;
 }
 
 .action-btn {
-    width: 56px;
-    height: 56px;
+    width: 58px;
+    height: 58px;
     border-radius: 50%;
     border: none;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 700;
     color: white;
     cursor: pointer;
@@ -321,9 +314,13 @@ html, body {
     bottom: 10px;
 }
 
+.action-btn:active {
+    transform: scale(0.9);
+}
+
 .system-btns {
     position: fixed;
-    bottom: 30px;
+    bottom: 40px;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
@@ -332,13 +329,17 @@ html, body {
 }
 
 .system-btn {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
     border-radius: 20px;
-    padding: 8px 20px;
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 12px;
+    padding: 10px 22px;
+    color: rgba(255,255,255,0.7);
+    font-size: 13px;
     cursor: pointer;
+}
+
+.system-btn:active {
+    background: rgba(255,255,255,0.2);
 }
 
 /* 暂停菜单 */
@@ -348,7 +349,7 @@ html, body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.85);
+    background: rgba(0,0,0,0.85);
     display: none;
     align-items: center;
     justify-content: center;
@@ -362,21 +363,21 @@ html, body {
     border-radius: 20px;
     padding: 30px 40px;
     text-align: center;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    min-width: 260px;
 }
 
 .pause-menu h2 {
     font-size: 22px;
-    margin-bottom: 25px;
+    margin-bottom: 24px;
 }
 
 .menu-btn {
     display: block;
     width: 100%;
-    padding: 14px 30px;
+    padding: 14px;
     margin: 10px 0;
     background: var(--bg-surface);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255,255,255,0.1);
     border-radius: 12px;
     color: var(--text-primary);
     font-size: 16px;
@@ -385,14 +386,14 @@ html, body {
 
 .menu-btn:active { background: var(--primary); }
 
-/* 弹框样式 */
+/* 弹框 */
 .dialog-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(0,0,0,0.7);
     display: none;
     align-items: center;
     justify-content: center;
@@ -406,7 +407,6 @@ html, body {
     border-radius: 16px;
     padding: 24px;
     width: min(320px, 85vw);
-    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .dialog-title {
@@ -431,25 +431,21 @@ html, body {
     width: 100%;
     padding: 12px;
     background: var(--bg-surface);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255,255,255,0.1);
     border-radius: 10px;
     color: var(--text-primary);
     font-size: 16px;
     outline: none;
 }
 
-.dialog-form input:focus {
-    border-color: var(--primary);
-}
+.dialog-form input:focus { border-color: var(--primary); }
 
 .nickname-status {
     font-size: 12px;
     margin-top: 6px;
     min-height: 18px;
+    color: #ef4444;
 }
-
-.nickname-status.taken { color: #ef4444; }
-.nickname-status.available { color: #10b981; }
 
 .dialog-actions {
     display: flex;
@@ -466,31 +462,53 @@ html, body {
     cursor: pointer;
 }
 
-.dialog-btn-cancel {
-    background: var(--bg-surface);
-    color: var(--text-primary);
+.dialog-btn-cancel { background: var(--bg-surface); color: var(--text-primary); }
+.dialog-btn-confirm { background: var(--primary); color: white; }
+
+/* El-Message 提示 */
+.el-message {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    padding: 14px 22px;
+    border-radius: 10px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.35);
+    animation: msgIn 0.3s ease;
+    max-width: 80vw;
+    white-space: nowrap;
 }
 
-.dialog-btn-confirm {
-    background: var(--primary);
-    color: white;
+.el-message--success { background: #f0f9eb; border: 1px solid #e1f3d8; color: #67c23a; }
+.el-message--error { background: #fef0f0; border: 1px solid #fde2e2; color: #f56c6c; }
+.el-message--warning { background: #fdf6ec; border: 1px solid #faecd8; color: #e6a23c; }
+.el-message--info { background: #f4f4f5; border: 1px solid #e9e9eb; color: #909399; }
+
+.el-message-icon { font-size: 18px; font-weight: bold; }
+
+@keyframes msgIn {
+    from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+    to { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 
 /* 联机大厅 */
 .lobby-container {
-    width: 100%;
-    height: 100%;
+    flex: 1;
     display: flex;
     flex-direction: column;
-    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
-    padding-bottom: 56px;
+    background: linear-gradient(135deg, #0f172a, #1e1b4b, #0f172a);
+    overflow: hidden;
 }
 
 .lobby-header {
     display: flex;
     align-items: center;
-    padding: 16px 20px;
-    background: rgba(0,0,0,0.3);
+    padding: 20px;
     gap: 12px;
 }
 
@@ -502,19 +520,12 @@ html, body {
     padding: 4px;
 }
 
-.lobby-header h2 {
-    flex: 1;
-    font-size: 18px;
-}
-
-.lobby-nickname {
-    font-size: 13px;
-    color: var(--primary);
-}
+.lobby-header h2 { flex: 1; font-size: 18px; }
+.lobby-nickname { font-size: 13px; color: var(--primary); }
 
 .online-tabs {
     display: flex;
-    padding: 16px 16px 0;
+    padding: 0 16px 16px;
     gap: 8px;
 }
 
@@ -529,26 +540,19 @@ html, body {
     font-size: 13px;
 }
 
-.online-tab.active {
-    background: var(--primary);
-    color: white;
-}
+.online-tab.active { background: var(--primary); color: white; }
 
 .online-panel {
     display: none;
     flex: 1;
     flex-direction: column;
-    padding: 16px;
+    padding: 0 16px 80px;
     overflow-y: auto;
 }
 
 .online-panel.active { display: flex; }
 
-.room-list {
-    flex: 1;
-    overflow-y: auto;
-    margin-bottom: 16px;
-}
+.room-list { flex: 1; overflow-y: auto; margin-bottom: 16px; }
 
 .room-list-empty {
     text-align: center;
@@ -559,52 +563,34 @@ html, body {
 .room-item {
     background: var(--bg-surface);
     border-radius: 10px;
-    padding: 12px;
-    margin-bottom: 8px;
+    padding: 14px;
+    margin-bottom: 10px;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
 .room-item-info { flex: 1; }
-
-.room-item-game {
-    font-weight: 600;
-    font-size: 14px;
-}
-
-.room-item-host, .room-item-id {
-    font-size: 12px;
-    color: var(--text-secondary);
-}
+.room-item-game { font-weight: 600; font-size: 14px; }
+.room-item-host, .room-item-id { font-size: 12px; color: var(--text-secondary); }
 
 .room-item-join {
     background: var(--primary);
     border: none;
     color: white;
-    padding: 8px 16px;
+    padding: 8px 18px;
     border-radius: 8px;
     font-size: 13px;
     cursor: pointer;
 }
 
-.online-form-group {
-    margin-bottom: 16px;
-}
-
-.online-form-group label {
-    display: block;
-    font-size: 13px;
-    color: var(--text-secondary);
-    margin-bottom: 6px;
-}
-
-.online-form-group select,
-.online-form-group input {
+.online-form-group { margin-bottom: 16px; }
+.online-form-group label { display: block; font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; }
+.online-form-group select, .online-form-group input {
     width: 100%;
     padding: 12px;
     background: var(--bg-surface);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255,255,255,0.1);
     border-radius: 8px;
     color: var(--text-primary);
     font-size: 14px;
@@ -626,72 +612,36 @@ html, body {
 
 /* 房间页面 */
 .room-container {
-    width: 100%;
-    height: 100%;
+    flex: 1;
     display: flex;
     flex-direction: column;
-    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+    background: linear-gradient(135deg, #0f172a, #1e1b4b, #0f172a);
 }
 
 .room-header {
     display: flex;
     align-items: center;
-    padding: 16px 20px;
-    background: rgba(0,0,0,0.3);
+    padding: 20px;
     gap: 12px;
 }
 
-.room-back-btn {
-    background: none;
-    border: none;
-    color: white;
-    cursor: pointer;
-}
-
+.room-back-btn { background: none; border: none; color: white; cursor: pointer; }
 .room-info { flex: 1; }
-
-.room-id-display {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--primary);
-    letter-spacing: 2px;
-}
-
-.room-copy-btn {
-    background: var(--primary);
-    border: none;
-    color: white;
-    padding: 8px 14px;
-    border-radius: 8px;
-    font-size: 13px;
-    cursor: pointer;
-}
+.room-id-display { font-size: 18px; font-weight: 700; color: var(--primary); letter-spacing: 2px; }
+.room-copy-btn { background: var(--primary); border: none; color: white; padding: 8px 14px; border-radius: 8px; font-size: 13px; cursor: pointer; }
 
 .room-players {
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 30px 20px;
-    gap: 20px;
+    padding: 24px;
+    gap: 24px;
 }
 
 .room-player { text-align: center; }
-
-.player-avatar {
-    font-size: 48px;
-    margin-bottom: 8px;
-}
-
-.player-name {
-    font-size: 16px;
-    font-weight: 600;
-}
-
-.room-vs {
-    font-size: 24px;
-    font-weight: 700;
-    color: var(--text-secondary);
-}
+.player-avatar { font-size: 48px; margin-bottom: 8px; }
+.player-name { font-size: 16px; font-weight: 600; }
+.room-vs { font-size: 24px; font-weight: 700; color: var(--text-secondary); }
 
 .room-chat {
     flex: 1;
@@ -712,11 +662,7 @@ html, body {
     gap: 8px;
 }
 
-.chat-system {
-    text-align: center;
-    font-size: 12px;
-    color: var(--text-secondary);
-}
+.chat-system { text-align: center; font-size: 12px; color: var(--text-secondary); }
 
 .chat-message {
     background: var(--bg-surface);
@@ -725,17 +671,8 @@ html, body {
     max-width: 80%;
 }
 
-.chat-message.self {
-    align-self: flex-end;
-    background: var(--primary);
-}
-
-.chat-message-name {
-    font-size: 11px;
-    color: var(--text-secondary);
-    margin-bottom: 2px;
-}
-
+.chat-message.self { align-self: flex-end; background: var(--primary); }
+.chat-message-name { font-size: 11px; color: rgba(255,255,255,0.6); margin-bottom: 2px; }
 .chat-message-text { font-size: 14px; }
 
 .chat-input-area {
@@ -764,32 +701,20 @@ html, body {
     cursor: pointer;
 }
 
-.room-actions {
-    padding: 16px;
-}
+.room-actions { padding: 16px; }
 
 /* 我的页面 */
 .profile-container {
-    width: 100%;
-    height: 100%;
+    flex: 1;
     display: flex;
     flex-direction: column;
-    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
-    padding-bottom: 56px;
+    background: linear-gradient(135deg, #0f172a, #1e1b4b, #0f172a);
 }
 
-.profile-header {
-    padding: 20px;
-    text-align: center;
-}
+.profile-header { padding: 24px; text-align: center; }
+.profile-header h2 { font-size: 20px; }
 
-.profile-header h2 {
-    font-size: 20px;
-}
-
-.profile-content {
-    padding: 0 16px;
-}
+.profile-content { padding: 0 16px 80px; }
 
 .profile-item {
     display: flex;
@@ -801,12 +726,5 @@ html, body {
     margin-bottom: 12px;
 }
 
-.profile-label {
-    font-size: 14px;
-    color: var(--text-secondary);
-}
-
-.profile-value {
-    font-size: 14px;
-    font-weight: 600;
-}
+.profile-label { font-size: 14px; color: var(--text-secondary); }
+.profile-value { font-size: 14px; font-weight: 600; }

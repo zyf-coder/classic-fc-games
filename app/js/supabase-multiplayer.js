@@ -85,11 +85,15 @@ class SupabaseMultiplayer {
         }
     }
 
-    async registerNickname(name) {
+    async registerNickname(name, deviceId) {
         try {
             const { error } = await this.supabase
                 .from('players')
-                .insert({ name: name, last_active: new Date().toISOString() });
+                .insert({ 
+                    name: name, 
+                    device_id: deviceId || 'unknown',
+                    last_active: new Date().toISOString() 
+                });
             
             if (error) {
                 console.error('注册昵称失败:', error);
@@ -327,3 +331,4 @@ class SupabaseMultiplayer {
 }
 
 window.SupabaseMultiplayer = SupabaseMultiplayer;
+
