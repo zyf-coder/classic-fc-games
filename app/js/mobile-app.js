@@ -240,33 +240,51 @@
         document.getElementById('gameTitle').textContent = game.name;
         document.getElementById('bottomTabs').style.display = 'none';
         
+        // 切换到横屏
+        try {
+            if (screen.orientation && screen.orientation.lock) {
+                screen.orientation.lock('landscape').catch(function() {});
+            }
+        } catch(e) {}
+        
         setTimeout(function() { loadROM(game.file); }, 300);
     }
 
     function loadROM(file) {
         try {
             var emulator = document.getElementById('emulator');
-            emulator.innerHTML = '<canvas width="256" height="240"></canvas>';
+            emulator.innerHTML = '<canvas width="256" height="240" style="width:100%;height:100%;object-fit:contain;"></canvas>';
             var canvas = emulator.querySelector('canvas');
             var ctx = canvas.getContext('2d');
-            var imageData = ctx.createImageData(256, 240);
+            
+            // 创建canvasImageData
+            var canvasImageData = ctx.getImageData(0, 0, 256, 240);
+            
+            // 清空canvas为黑色
+            ctx.fillStyle = 'black';
+            ctx.fillRect(0, 0, 256, 240);
+            
+            // 设置alpha通道
+            for (var i = 3; i < canvasImageData.data.length; i += 4) {
+                canvasImageData.data[i] = 0xFF;
+            }
             
             // 创建UI对象
             var ui = {
                 writeFrame: function(buffer, prevBuffer) {
-                    var data = imageData.data;
-                    for (var i = 0; i < 256 * 240; i++) {
-                        var pixel = buffer[i];
+                    var imageData = canvasImageData.data;
+                    var pixel, i, j;
+                    for (i = 0; i < 256 * 240; i++) {
+                        pixel = buffer[i];
                         if (pixel !== prevBuffer[i]) {
-                            var j = i * 4;
-                            data[j] = pixel & 0xFF;
-                            data[j + 1] = (pixel >> 8) & 0xFF;
-                            data[j + 2] = (pixel >> 16) & 0xFF;
-                            data[j + 3] = 0xFF;
+                            j = i * 4;
+                            imageData[j] = pixel & 0xFF;
+                            imageData[j + 1] = (pixel >> 8) & 0xFF;
+                            imageData[j + 2] = (pixel >> 16) & 0xFF;
                             prevBuffer[i] = pixel;
                         }
                     }
-                    ctx.putImageData(imageData, 0, 0);
+                    ctx.putImageData(canvasImageData, 0, 0);
                 },
                 writeAudio: function() {},
                 updateStatus: function(s) { console.log('NES:', s); },
@@ -306,6 +324,12 @@
         currentGame = null;
         isPaused = false;
         if (mainBgm) mainBgm.play().catch(function() {});
+        
+        // 恢复竖屏
+        try {
+            if (screen.orientation) screen.orientation.unlock();
+        } catch(e) {}
+        
         showPage('gameSelectPage');
     }
 
@@ -499,4 +523,6 @@
     function show(id) { document.getElementById(id).classList.add('visible'); }
     function hide(id) { document.getElementById(id).classList.remove('visible'); }
 })();
+
+
 

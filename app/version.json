@@ -1,9 +1,10 @@
 {
-  "version": "1.6.8",
-  "versionCode": 31,
+  "version": "1.6.9",
+  "versionCode": 32,
   "downloadUrl": "https://raw.githubusercontent.com/zyf-coder/classic-fc-games/main/classic-fc-games.apk",
   "notes": "修复横屏、游戏画面、el-message提示、设备ID存储"
 }
+
 
 
 
