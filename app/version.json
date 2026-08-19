@@ -1,9 +1,10 @@
 {
-  "version": "1.6.1",
-  "versionCode": 25,
+  "version": "1.6.2",
+  "versionCode": 26,
   "downloadUrl": "https://raw.githubusercontent.com/zyf-coder/classic-fc-games/main/classic-fc-games.apk",
-  "notes": "修复联机按钮，支持竖屏进入横屏游戏"
+  "notes": "修复昵称确认功能，APP默认竖屏"
 }
+
 
 
 

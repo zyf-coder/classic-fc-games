@@ -2,7 +2,7 @@
  * 移动端应用主逻辑
  */
 (function() {
-    const APP_VERSION = '1.6.1';
+    const APP_VERSION = '1.6.2';
     const GAMES = [
         { name: '超级玛丽', file: 'Super Mario Bros. (JU) (PRG0) [!].nes', icon: '🍄' },
         { name: '魂斗罗', file: 'hun.nes', icon: '🔫' },
@@ -175,6 +175,57 @@
         document.getElementById('nicknameInput').value = savedName;
         document.getElementById('nicknameStatus').textContent = '';
         showDialog('nicknameDialog');
+    }
+    
+    async function confirmNickname() {
+        const name = document.getElementById('nicknameInput').value.trim();
+        const statusEl = document.getElementById('nicknameStatus');
+        
+        if (!name) {
+            statusEl.textContent = '请输入昵称';
+            statusEl.className = 'nickname-status taken';
+            return;
+        }
+        
+        if (name.length < 2) {
+            statusEl.textContent = '昵称至少2个字符';
+            statusEl.className = 'nickname-status taken';
+            return;
+        }
+        
+        statusEl.textContent = '检查中...';
+        statusEl.className = 'nickname-status';
+        
+        try {
+            const connected = await onlineMultiplayer.init();
+            if (!connected) {
+                statusEl.textContent = '连接服务器失败';
+                statusEl.className = 'nickname-status taken';
+                return;
+            }
+            
+            const available = await onlineMultiplayer.checkNickname(name);
+            if (!available) {
+                statusEl.textContent = '该昵称已被使用';
+                statusEl.className = 'nickname-status taken';
+                return;
+            }
+            
+            const registered = await onlineMultiplayer.registerNickname(name);
+            if (registered) {
+                localStorage.setItem('playerNickname', name);
+                onlineMultiplayer.playerName = name;
+                hideDialog('nicknameDialog');
+                showLobby();
+            } else {
+                statusEl.textContent = '注册失败，请重试';
+                statusEl.className = 'nickname-status taken';
+            }
+        } catch (e) {
+            console.error('确认昵称失败:', e);
+            statusEl.textContent = '操作失败: ' + e.message;
+            statusEl.className = 'nickname-status taken';
+        }
     }
     
     async function confirmNickname() {
@@ -1170,6 +1221,8 @@
     function hideDialog(id) {
         document.getElementById(id)?.classList.remove('visible');
     }
+
+
 
 
 
