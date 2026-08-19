@@ -1,0 +1,15 @@
+{
+  "name": "fc-games-online",
+  "version": "1.0.0",
+  "description": "FC Games Online Multiplayer Server",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "ws": "^8.14.2"
+  },
+  "engines": {
+    "node": "14.x"
+  }
+}

@@ -23,6 +23,77 @@
 </head>
 <body>
     <audio id="mainBgm" src="cf.mp4" loop preload="auto"></audio>
+
+<!-- 联机对话框 -->
+<div id="onlineDialog" class="online-dialog">
+    <div class="online-dialog-content">
+        <div class="online-dialog-header">
+            <h2>联机对战</h2>
+            <button class="online-dialog-close" id="onlineDialogClose">×</button>
+        </div>
+        
+        <div class="online-tabs">
+            <button class="online-tab active" data-tab="create">创建房间</button>
+            <button class="online-tab" data-tab="join">加入房间</button>
+        </div>
+        
+        <div id="createRoomPanel" class="online-panel active">
+            <div class="online-form-group">
+                <label>你的昵称</label>
+                <input type="text" id="playerNameCreate" placeholder="输入昵称" maxlength="10">
+            </div>
+            <div class="online-form-group">
+                <label>选择游戏</label>
+                <select id="gameSelectOnline"></select>
+            </div>
+            <button class="online-btn online-btn-primary" id="createRoomBtn">创建房间</button>
+        </div>
+        
+        <div id="joinRoomPanel" class="online-panel">
+            <div class="online-form-group">
+                <label>你的昵称</label>
+                <input type="text" id="playerNameJoin" placeholder="输入昵称" maxlength="10">
+            </div>
+            <div class="online-form-group">
+                <label>房间号</label>
+                <input type="text" id="roomIdInput" placeholder="输入6位房间号" maxlength="6" style="text-transform: uppercase;">
+            </div>
+            <button class="online-btn online-btn-primary" id="joinRoomBtn">加入房间</button>
+        </div>
+        
+        <div id="waitingPanel" class="online-panel">
+            <div class="waiting-info">
+                <div class="waiting-icon">🎮</div>
+                <div class="waiting-text">等待玩家加入...</div>
+                <div class="waiting-room-id">房间号: <span id="waitingRoomId"></span></div>
+            </div>
+            <button class="online-btn online-btn-secondary" id="copyRoomIdBtn">复制房间号</button>
+            <button class="online-btn online-btn-danger" id="cancelWaitingBtn">取消</button>
+        </div>
+        
+        <div id="connectedPanel" class="online-panel">
+            <div class="connected-info">
+                <div class="connected-icon">✅</div>
+                <div class="connected-text">玩家已加入！</div>
+                <div class="connected-players">
+                    <span id="player1Name">玩家1</span> VS <span id="player2Name">玩家2</span>
+                </div>
+            </div>
+            <button class="online-btn online-btn-primary" id="startOnlineGameBtn">开始游戏</button>
+            <button class="online-btn online-btn-danger" id="leaveRoomBtn">离开房间</button>
+        </div>
+    </div>
+</div>
+
+<!-- 联机状态栏 -->
+<div id="onlineStatusBar" class="online-status-bar" style="display: none;">
+    <div class="online-status-info">
+        <span class="online-badge">联机中</span>
+        <span id="onlineOpponentName">对手</span>
+    </div>
+    <button class="online-disconnect-btn" id="onlineDisconnectBtn">断开</button>
+</div>
+
     <!-- 游戏选择页面 -->
     <div id="gameSelectPage" class="page active">
         <div class="update-banner" id="updateBanner" role="status" aria-live="polite">
@@ -44,7 +115,12 @@
                 <!-- 游戏卡片将通过JS动态生成 -->
             </div>
             <div class="footer">
-                <p>触摸屏幕开始游戏 · 左侧摇杆控制方向 · 右侧按钮操作</p>
+            </div>
+            <div class="online-entry">
+                <button class="online-entry-btn" id="onlineEntryBtn">
+                    <span class="online-entry-icon">🌐</span>
+                    <span class="online-entry-text">联机对战</span>
+                </button>
             </div>
         </div>
     </div>
@@ -135,6 +211,7 @@
     <script src="js/ppu.js" type="text/javascript"></script>
     <script src="js/rom.js" type="text/javascript"></script>
     <script src="js/ui.js" type="text/javascript"></script>
+<script src="js/online-multiplayer.js"></script>
     <script src="js/mobile-touch.js" type="text/javascript"></script>
     <script src="js/mobile-app.js" type="text/javascript"></script>
     <script>

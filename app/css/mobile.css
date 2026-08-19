@@ -867,3 +867,37 @@ html, body {
     color: var(--text-primary);
 }
 
+
+/* 联机入口按钮 */
+.online-entry {
+    padding: 10px 0 20px;
+    text-align: center;
+}
+
+.online-entry-btn {
+    background: linear-gradient(135deg, var(--primary), var(--accent-purple));
+    border: none;
+    border-radius: 12px;
+    padding: 12px 32px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+}
+
+.online-entry-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+}
+
+.online-entry-icon {
+    font-size: 20px;
+}
+
+.online-entry-text {
+    color: white;
+    font-size: 15px;
+    font-weight: 600;
+}

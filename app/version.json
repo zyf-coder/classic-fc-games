@@ -1,9 +1,10 @@
 {
-  "version": "1.2.3",
-  "versionCode": 15,
+  "version": "1.3.0",
+  "versionCode": 16,
   "downloadUrl": "https://raw.githubusercontent.com/zyf-coder/classic-fc-games/main/classic-fc-games.apk",
-  "notes": "修复画面横向拉伸，保持原始比例显示"
+  "notes": "新增联机对战功能，支持双人在线游戏"
 }
+
 
 
 
