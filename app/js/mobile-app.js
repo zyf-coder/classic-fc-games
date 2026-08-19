@@ -466,7 +466,7 @@
         requestLandscape();
         
         // 加载游戏
-        setTimeout(function() { loadROM(game.file); }, 200);
+        setTimeout(function() { loadGameROM(game.file); }, 300);
     }
 
     function requestLandscape() {
@@ -562,4 +562,111 @@
         var el = document.getElementById(id);
         if (el) el.classList.remove('visible');
     }
+
+    // 加载游戏ROM
+    function loadGameROM(romFile) {
+        try {
+            // 初始化NES
+            if (!nes) {
+                nes = new JSNES({
+                    swfPath: 'js/',
+                    ui: {
+                        writeFrame: function(buffer, prevBuffer) {
+                            var canvas = document.querySelector('.emulator canvas');
+                            if (!canvas) return;
+                            var ctx = canvas.getContext('2d');
+                            var imageData = ctx.getImageData(0, 0, 256, 240);
+                            var data = imageData.data;
+                            for (var i = 0; i < 256 * 240; i++) {
+                                var pixel = buffer[i];
+                                if (pixel !== prevBuffer[i]) {
+                                    var j = i * 4;
+                                    data[j] = pixel & 0xFF;
+                                    data[j + 1] = (pixel >> 8) & 0xFF;
+                                    data[j + 2] = (pixel >> 16) & 0xFF;
+                                    data[j + 3] = 0xFF;
+                                    prevBuffer[i] = pixel;
+                                }
+                            }
+                            ctx.putImageData(imageData, 0, 0);
+                        },
+                        writeAudio: function() {},
+                        updateStatus: function(s) {},
+                        enable: function() {}
+                    }
+                });
+            }
+
+            // 创建canvas
+            var emulator = document.getElementById('emulator');
+            var canvas = emulator.querySelector('canvas');
+            if (!canvas) {
+                canvas = document.createElement('canvas');
+                canvas.width = 256;
+                canvas.height = 240;
+                emulator.innerHTML = '';
+                emulator.appendChild(canvas);
+            }
+
+            // 清空canvas
+            var ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, 256, 240);
+
+            // 加载ROM
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', 'roms/' + romFile, true);
+            xhr.overrideMimeType('text/plain; charset=x-user-defined');
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    try {
+                        nes.loadRom(xhr.responseText);
+                        nes.start();
+                        showMessage('游戏加载成功', 'success');
+                    } catch(e) {
+                        showMessage('游戏加载失败', 'error');
+                    }
+                }
+            };
+            xhr.send();
+        } catch(e) {
+            showMessage('游戏初始化失败', 'error');
+        }
+    }
+
+    // 关于我们
+    window.showAbout = function() {
+        var overlay = document.createElement('div');
+        overlay.className = 'dialog-overlay visible';
+        overlay.innerHTML = '<div class="dialog-box"><div class="dialog-title">关于我们</div><div style="text-align:center;padding:10px 0;"><p>经典怀旧游戏</p><p>版本: ' + APP_VERSION + '</p><p>FC/NES 经典游戏合集</p></div><div class="dialog-actions"><button class="dialog-btn dialog-btn-confirm" onclick="checkForUpdate()">检查更新</button><button class="dialog-btn dialog-btn-cancel" onclick="this.closest(\'.dialog-overlay\').remove()">关闭</button></div></div>';
+        document.body.appendChild(overlay);
+    };
+
+    // 检查更新
+    window.checkForUpdate = function() {
+        fetch('https://raw.githubusercontent.com/zyf-coder/classic-fc-games/main/app/version.json?t=' + Date.now())
+            .then(function(r) { return r.json(); })
+            .then(function(remote) {
+                var local = APP_VERSION.split('.').map(Number);
+                var remote_v = remote.version.split('.').map(Number);
+                var hasUpdate = false;
+                for (var i = 0; i < 3; i++) {
+                    if (remote_v[i] > local[i]) { hasUpdate = true; break; }
+                    if (remote_v[i] < local[i]) break;
+                }
+                if (hasUpdate) {
+                    showMessage('发现新版本 v' + remote.version, 'info');
+                    setTimeout(function() {
+                        if (confirm('发现新版本 v' + remote.version + '，是否下载？')) {
+                            window.open('https://raw.githubusercontent.com/zyf-coder/classic-fc-games/main/classic-fc-games.apk');
+                        }
+                    }, 500);
+                } else {
+                    showMessage('已是最新版本', 'success');
+                }
+            })
+            .catch(function() { showMessage('检查更新失败', 'error'); });
+    };
 })();
+
+
