@@ -1,4 +1,4 @@
-const CACHE_NAME = 'classic-fc-games-v4';
+const CACHE_NAME = 'classic-fc-games-v5';
 const urlsToCache = [
     './',
     './index.html',
@@ -15,24 +15,19 @@ const urlsToCache = [
     './js/ui.js',
     './js/mobile-touch.js',
     './js/mobile-app.js',
-    './js/dynamicaudio-min.js',
-    './manifest.json',
-    './cf.mp4',
-    './version.json'
+    './js/supabase-multiplayer.js',
+    './js/dynamicaudio-min.js'
 ];
 
-// 安装 Service Worker
+// 安装
 self.addEventListener('install', event => {
     event.waitUntil(
         caches.open(CACHE_NAME)
-            .then(cache => {
-                console.log('缓存已打开');
-                return cache.addAll(urlsToCache);
-            })
+            .then(cache => cache.addAll(urlsToCache))
     );
 });
 
-// 激活 Service Worker
+// 激活
 self.addEventListener('activate', event => {
     event.waitUntil(
         caches.keys().then(cacheNames => {
@@ -46,6 +41,11 @@ self.addEventListener('activate', event => {
 
 // 拦截请求
 self.addEventListener('fetch', event => {
+    // 忽略非http请求
+    if (!event.request.url.startsWith('http')) {
+        return;
+    }
+    
     event.respondWith(
         caches.match(event.request)
             .then(response => {
