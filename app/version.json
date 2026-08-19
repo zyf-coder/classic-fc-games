@@ -1,9 +1,10 @@
 {
-  "version": "1.3.0",
-  "versionCode": 16,
+  "version": "1.4.0",
+  "versionCode": 17,
   "downloadUrl": "https://raw.githubusercontent.com/zyf-coder/classic-fc-games/main/classic-fc-games.apk",
-  "notes": "新增联机对战功能，支持双人在线游戏"
+  "notes": "联机功能升级，使用Supabase实现稳定连接"
 }
+
 
 
 

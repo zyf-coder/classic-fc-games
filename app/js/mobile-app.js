@@ -2,7 +2,7 @@
  * 移动端应用主逻辑
  */
 (function() {
-    const APP_VERSION = '1.3.0';
+    const APP_VERSION = '1.4.0';
     const GAMES = [
         { name: '超级玛丽', file: 'Super Mario Bros. (JU) (PRG0) [!].nes', icon: '🍄' },
         { name: '魂斗罗', file: 'hun.nes', icon: '🔫' },
@@ -153,7 +153,11 @@
 
     // 联机功能初始化
     function initOnlineMultiplayer() {
-        onlineMultiplayer = new OnlineMultiplayer();
+        // Supabase 配置
+        const SUPABASE_URL = 'https://mmkptnjivwnuodzbyjuy.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_jmAUsKf5jAksds6fpIEaVQ_I8c3SNci';
+        
+        onlineMultiplayer = new SupabaseMultiplayer(SUPABASE_URL, SUPABASE_KEY);
         
         // 设置回调
         onlineMultiplayer.onRoomCreated = function(roomId) {
@@ -243,16 +247,20 @@
         }
         
         try {
-            // 连接到服务器
-            await onlineMultiplayer.connect('wss://fc-games-online.glitch.me');
+            // 初始化连接
+            const connected = await onlineMultiplayer.init();
+            if (!connected) {
+                alert('连接服务器失败');
+                return;
+            }
             
             // 创建房间
-            onlineMultiplayer.createRoom(gameName, playerName);
+            await onlineMultiplayer.createRoom(gameName, playerName);
             onlinePlayerId = 1;
             
             document.getElementById('player1Name').textContent = playerName;
         } catch (e) {
-            alert('连接服务器失败，请稍后重试');
+            alert('连接服务器失败: ' + e.message);
         }
     }
     
@@ -267,16 +275,21 @@
         }
         
         try {
-            // 连接到服务器
-            await onlineMultiplayer.connect('wss://fc-games-online.glitch.me');
+            // 初始化连接
+            const connected = await onlineMultiplayer.init();
+            if (!connected) {
+                alert('连接服务器失败');
+                return;
+            }
             
             // 加入房间
-            onlineMultiplayer.joinRoom(roomId, playerName);
-            onlinePlayerId = 2;
-            
-            document.getElementById('player2Name').textContent = playerName;
+            const joined = await onlineMultiplayer.joinRoom(roomId, playerName);
+            if (joined) {
+                onlinePlayerId = 2;
+                document.getElementById('player2Name').textContent = playerName;
+            }
         } catch (e) {
-            alert('连接服务器失败，请稍后重试');
+            alert('连接服务器失败: ' + e.message);
         }
     }
     
@@ -637,6 +650,8 @@
         document.getElementById('gameSelectPage').classList.add('active');
     }
 })();
+
+
 
 
 
