@@ -2,7 +2,7 @@
  * 移动端应用主逻辑
  */
 (function() {
-    const APP_VERSION = '1.5.5';
+    const APP_VERSION = '1.6.1';
     const GAMES = [
         { name: '超级玛丽', file: 'Super Mario Bros. (JU) (PRG0) [!].nes', icon: '🍄' },
         { name: '魂斗罗', file: 'hun.nes', icon: '🔫' },
@@ -73,6 +73,7 @@
         document.getElementById('settingsClose')?.addEventListener('click', toggleSettings);
         document.getElementById('screenMarginRange')?.addEventListener('input', updateScreenMargin);
         document.getElementById('updateDismiss')?.addEventListener('click', dismissUpdate);
+        document.getElementById('onlineEntryBtn')?.addEventListener('click', showNicknameDialog);
         document.addEventListener('pointerdown', unlockMainBgm, { once: true, passive: true });
         window.addEventListener('pagehide', saveMainBgmPosition);
         document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -91,6 +92,346 @@
         });
     }
 
+
+    // 联机功能初始化
+    function initOnlineMultiplayer() {
+        const SUPABASE_URL = 'https://mmkptnjivwnuodzbyjuy.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_jmAUsKf5jAksds6fpIEaVQ_I8c3SNci';
+        
+        onlineMultiplayer = new SupabaseMultiplayer(SUPABASE_URL, SUPABASE_KEY);
+        
+        onlineMultiplayer.onRoomCreated = function(roomId) {
+            onlineRoomId = roomId;
+            showRoomPage(roomId, true);
+        };
+        
+        onlineMultiplayer.onRoomJoined = function(data) {
+            onlineRoomId = data.roomId;
+            onlinePlayerId = data.playerId;
+            showRoomPage(data.roomId, false);
+        };
+        
+        onlineMultiplayer.onPlayerJoined = function(data) {
+            document.getElementById('roomPlayer2').textContent = data.playerName || '玩家2';
+            document.getElementById('startGameBtn').disabled = false;
+            document.getElementById('startGameBtn').textContent = '开始游戏';
+            addChatMessage('系统', data.playerName + ' 加入了房间', true);
+        };
+        
+        onlineMultiplayer.onPlayerLeft = function() {
+            addChatMessage('系统', '对手已离开房间', true);
+            document.getElementById('roomPlayer2').textContent = '等待中...';
+            document.getElementById('startGameBtn').disabled = true;
+            document.getElementById('startGameBtn').textContent = '等待对手加入...';
+        };
+        
+        onlineMultiplayer.onChatMessage = function(data) {
+            addChatMessage(data.playerName, data.message, data.playerId === onlinePlayerId);
+        };
+        
+        onlineMultiplayer.onError = function(message) {
+            alert(message);
+        };
+        
+        // 绑定事件
+        document.getElementById('onlineEntryBtn')?.addEventListener('click', showNicknameDialog);
+        document.getElementById('confirmNicknameBtn')?.addEventListener('click', confirmNickname);
+        document.getElementById('lobbyBackBtn')?.addEventListener('click', () => {
+            document.getElementById('onlineLobbyPage').classList.remove('active');
+            document.getElementById('gameSelectPage').classList.add('active');
+        });
+        document.getElementById('createRoomBtn')?.addEventListener('click', createOnlineRoom);
+        document.getElementById('joinRoomBtn')?.addEventListener('click', joinOnlineRoom);
+        document.getElementById('refreshRoomListBtn')?.addEventListener('click', refreshRoomList);
+        document.getElementById('roomBackBtn')?.addEventListener('click', leaveRoom);
+        document.getElementById('roomCopyBtn')?.addEventListener('click', copyRoomId);
+        document.getElementById('startGameBtn')?.addEventListener('click', startOnlineGame);
+        document.getElementById('onlineDisconnectBtn')?.addEventListener('click', disconnectOnline);
+        document.getElementById('chatSendBtn')?.addEventListener('click', sendChatMessage);
+        document.getElementById('chatInput')?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendChatMessage();
+        });
+        
+        // 标签切换
+        document.querySelectorAll('.online-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.online-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.online-panel').forEach(p => p.classList.remove('active'));
+                this.classList.add('active');
+                const panelId = {
+                    'roomList': 'roomListPanel',
+                    'createRoom': 'createRoomPanel',
+                    'joinRoom': 'joinRoomPanel'
+                }[this.dataset.tab];
+                document.getElementById(panelId)?.classList.add('active');
+                
+                if (this.dataset.tab === 'roomList') refreshRoomList();
+            });
+        });
+    }
+    
+    function showNicknameDialog() {
+        const savedName = localStorage.getItem('playerNickname') || '';
+        document.getElementById('nicknameInput').value = savedName;
+        document.getElementById('nicknameStatus').textContent = '';
+        showDialog('nicknameDialog');
+    }
+    
+    async function confirmNickname() {
+        const name = document.getElementById('nicknameInput').value.trim();
+        if (!name) {
+            document.getElementById('nicknameStatus').textContent = '请输入昵称';
+            document.getElementById('nicknameStatus').className = 'nickname-status taken';
+            return;
+        }
+        
+        if (name.length < 2) {
+            document.getElementById('nicknameStatus').textContent = '昵称至少2个字符';
+            document.getElementById('nicknameStatus').className = 'nickname-status taken';
+            return;
+        }
+        
+        const connected = await onlineMultiplayer.init();
+        if (!connected) {
+            alert('连接服务器失败');
+            return;
+        }
+        
+        const available = await onlineMultiplayer.checkNickname(name);
+        if (!available) {
+            document.getElementById('nicknameStatus').textContent = '该昵称已被使用';
+            document.getElementById('nicknameStatus').className = 'nickname-status taken';
+            return;
+        }
+        
+        const registered = await onlineMultiplayer.registerNickname(name);
+        if (registered) {
+            localStorage.setItem('playerNickname', name);
+            onlineMultiplayer.playerName = name;
+            hideDialog('nicknameDialog');
+            showLobby();
+        } else {
+            document.getElementById('nicknameStatus').textContent = '注册失败，请重试';
+            document.getElementById('nicknameStatus').className = 'nickname-status taken';
+        }
+    }
+    
+    async function showLobby() {
+        const gameSelect = document.getElementById('gameSelectOnline');
+        if (gameSelect && gameSelect.options.length <= 1) {
+            GAMES.forEach(game => {
+                const option = document.createElement('option');
+                option.value = game.name;
+                option.textContent = game.name;
+                gameSelect.appendChild(option);
+            });
+        }
+        
+        document.getElementById('lobbyNickname').textContent = localStorage.getItem('playerNickname') || '';
+        document.getElementById('gameSelectPage').classList.remove('active');
+        document.getElementById('onlineLobbyPage').classList.add('active');
+        
+        refreshRoomList();
+    }
+    
+    async function createOnlineRoom() {
+        const gameName = document.getElementById('gameSelectOnline').value;
+        const name = localStorage.getItem('playerNickname');
+        
+        if (!gameName) {
+            alert('请选择游戏');
+            return;
+        }
+        
+        if (!name) {
+            showNicknameDialog();
+            return;
+        }
+        
+        try {
+            const created = await onlineMultiplayer.createRoom(gameName, name);
+            if (created) {
+                onlinePlayerId = 1;
+                showRoomPage(onlineMultiplayer.roomId, true);
+            } else {
+                alert('创建房间失败，请重试');
+            }
+        } catch (e) {
+            alert('创建房间失败: ' + e.message);
+        }
+    }
+    
+    async function joinOnlineRoom() {
+        const roomId = document.getElementById('roomIdInput').value.toUpperCase();
+        const name = localStorage.getItem('playerNickname');
+        
+        if (!roomId || roomId.length !== 6) {
+            alert('请输入6位房间号');
+            return;
+        }
+        
+        if (!name) {
+            showNicknameDialog();
+            return;
+        }
+        
+        try {
+            const joined = await onlineMultiplayer.joinRoom(roomId, name);
+            if (joined) {
+                onlinePlayerId = 2;
+                showRoomPage(roomId, false);
+            } else {
+                alert('加入房间失败，房间可能不存在');
+            }
+        } catch (e) {
+            alert('加入房间失败: ' + e.message);
+        }
+    }
+    
+    async function refreshRoomList() {
+        const roomList = document.getElementById('roomList');
+        roomList.innerHTML = '<div class="room-list-empty">加载中...</div>';
+        
+        try {
+            const rooms = await onlineMultiplayer.getRoomList();
+            if (!rooms || rooms.length === 0) {
+                roomList.innerHTML = '<div class="room-list-empty">暂无房间，快去创建吧</div>';
+                return;
+            }
+            
+            roomList.innerHTML = rooms.map(room => `
+                <div class="room-item">
+                    <div class="room-item-info">
+                        <div class="room-item-game">${room.game}</div>
+                        <div class="room-item-host">房主: ${room.player1}</div>
+                        <div class="room-item-id">房间号: ${room.id}</div>
+                    </div>
+                    <button class="room-item-join" onclick="quickJoinRoom('${room.id}', '${room.game}')">加入</button>
+                </div>
+            `).join('');
+        } catch (e) {
+            roomList.innerHTML = '<div class="room-list-empty">加载失败，请重试</div>';
+        }
+    }
+    
+    window.quickJoinRoom = async function(roomId, gameName) {
+        const name = localStorage.getItem('playerNickname');
+        if (!name) {
+            showNicknameDialog();
+            return;
+        }
+        
+        const joined = await onlineMultiplayer.joinRoom(roomId, name);
+        if (joined) {
+            onlinePlayerId = 2;
+            showRoomPage(roomId, false);
+        }
+    };
+    
+    function showRoomPage(roomId, isHost) {
+        document.getElementById('onlineLobbyPage')?.classList.remove('active');
+        document.getElementById('roomIdDisplay').textContent = roomId;
+        document.getElementById('roomPlayer1').textContent = localStorage.getItem('playerNickname') || '玩家1';
+        document.getElementById('roomPlayer2').textContent = isHost ? '等待中...' : localStorage.getItem('playerNickname') || '玩家2';
+        
+        if (isHost) {
+            document.getElementById('startGameBtn').disabled = true;
+            document.getElementById('startGameBtn').textContent = '等待对手加入...';
+        } else {
+            document.getElementById('startGameBtn').disabled = false;
+            document.getElementById('startGameBtn').textContent = '开始游戏';
+        }
+        
+        document.getElementById('gameSelectPage').classList.remove('active');
+        document.getElementById('roomPage').classList.add('active');
+        document.getElementById('chatMessages').innerHTML = '<div class="chat-system">欢迎来到房间</div>';
+    }
+    
+    function copyRoomId() {
+        const roomId = document.getElementById('roomIdDisplay').textContent;
+        navigator.clipboard?.writeText(roomId).then(() => {
+            alert('房间号已复制');
+        }).catch(() => {
+            alert('房间号: ' + roomId);
+        });
+    }
+    
+    function sendChatMessage() {
+        const input = document.getElementById('chatInput');
+        const message = input.value.trim();
+        if (!message) return;
+        
+        onlineMultiplayer.sendChatMessage(message);
+        addChatMessage(localStorage.getItem('playerNickname'), message, true);
+        input.value = '';
+    }
+    
+    function addChatMessage(name, message, isSelf) {
+        const chatMessages = document.getElementById('chatMessages');
+        const div = document.createElement('div');
+        div.className = 'chat-message' + (isSelf ? ' self' : '');
+        div.innerHTML = `
+            <div class="chat-message-name">${name}</div>
+            <div class="chat-message-text">${message}</div>
+        `;
+        chatMessages.appendChild(div);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    
+    function startOnlineGame() {
+        isOnlineMode = true;
+        document.getElementById('roomPage').classList.remove('active');
+        document.getElementById('gameSelectPage').classList.add('active');
+        document.getElementById('onlineStatusBar').style.display = 'flex';
+        document.getElementById('onlineOpponentName').textContent = 
+            onlinePlayerId === 1 ? document.getElementById('roomPlayer2').textContent : document.getElementById('roomPlayer1').textContent;
+        
+        const gameName = document.getElementById('gameSelectOnline').value || '超级玛丽';
+        const game = GAMES.find(g => g.name === gameName);
+        
+        if (game) {
+            startGame(game);
+            onlineMultiplayer.onPlayerInput = function(input, fromPlayer) {
+                if (fromPlayer !== onlinePlayerId && nes) {
+                    applyRemoteInput(input);
+                }
+            };
+        }
+    }
+    
+    function applyRemoteInput(input) {
+        if (!nes || !nes.keyboard) return;
+        const keys = nes.keyboard.keys;
+        if (input.up !== undefined) nes.keyboard.state1[keys.KEY_UP] = input.up ? 0x41 : 0x40;
+        if (input.down !== undefined) nes.keyboard.state1[keys.KEY_DOWN] = input.down ? 0x41 : 0x40;
+        if (input.left !== undefined) nes.keyboard.state1[keys.KEY_LEFT] = input.left ? 0x41 : 0x40;
+        if (input.right !== undefined) nes.keyboard.state1[keys.KEY_RIGHT] = input.right ? 0x41 : 0x40;
+        if (input.a !== undefined) nes.keyboard.state1[keys.KEY_A] = input.a ? 0x41 : 0x40;
+        if (input.b !== undefined) nes.keyboard.state1[keys.KEY_B] = input.b ? 0x41 : 0x40;
+    }
+    
+    function leaveRoom() {
+        onlineMultiplayer?.leaveRoom();
+        document.getElementById('roomPage').classList.remove('active');
+        document.getElementById('gameSelectPage').classList.add('active');
+        onlineRoomId = null;
+        onlinePlayerId = null;
+    }
+    
+    function disconnectOnline() {
+        isOnlineMode = false;
+        leaveRoom();
+        onlineMultiplayer?.disconnect();
+        document.getElementById('onlineStatusBar').style.display = 'none';
+    }
+    
+    function showDialog(id) {
+        document.getElementById(id)?.classList.add('visible');
+    }
+    
+    function hideDialog(id) {
+        document.getElementById(id)?.classList.remove('visible');
+    }
     function initMainBgm() {
         mainBgm = document.getElementById('mainBgm');
         if (!mainBgm) return;
@@ -528,6 +869,11 @@
         document.getElementById('gamePage').classList.add('active');
         document.getElementById('gameTitle').textContent = game.name;
 
+        // 请求横屏
+        if (screen.orientation) {
+            screen.orientation.lock('landscape').catch(() => {});
+        }
+
         setTimeout(() => {
             loadROM(game.file);
         }, 100);
@@ -780,6 +1126,11 @@
             }
         } catch(e) {}
         
+        // 恢复竖屏
+        if (screen.orientation) {
+            screen.orientation.unlock().catch(() => {});
+        }
+        
         document.getElementById('gamePage').classList.remove('active');
         document.getElementById('gameSelectPage').classList.add('active');
     }
@@ -819,6 +1170,11 @@
     function hideDialog(id) {
         document.getElementById(id)?.classList.remove('visible');
     }
+
+
+
+
+
 
 
 
