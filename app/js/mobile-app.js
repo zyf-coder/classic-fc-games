@@ -2,7 +2,7 @@
  * 移动端应用 v1.7.2
  */
 (function() {
-    var APP_VERSION = '1.7.2';
+    var APP_VERSION = '1.7.3';
     var GAMES = [
         { name: '超级玛丽', file: 'Super Mario Bros. (JU) (PRG0) [!].nes', icon: '🍄' },
         { name: '魂斗罗', file: 'hun.nes', icon: '🔫' },
@@ -527,6 +527,7 @@
     function show(id) { document.getElementById(id).classList.add('visible'); }
     function hide(id) { document.getElementById(id).classList.remove('visible'); }
 })();
+
 
 
 

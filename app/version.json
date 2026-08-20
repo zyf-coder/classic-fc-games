@@ -1,6 +1,6 @@
 {
-  "version": "1.7.2",
-  "versionCode": 35,
+  "version": "1.7.3",
+  "versionCode": 36,
   "downloadUrl": "https://raw.githubusercontent.com/zyf-coder/classic-fc-games/main/classic-fc-games.apk",
-  "notes": "优化游戏横屏显示，添加原生屏幕方向控制，修复canvas缩放问题"
+  "notes": "增大头部间距，优化游戏横屏显示，移除启动提示消息"
 }
