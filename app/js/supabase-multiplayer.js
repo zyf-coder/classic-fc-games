@@ -128,14 +128,16 @@ class SupabaseMultiplayer {
 
             this.setupChannelListeners();
 
-            const { error } = await this.supabase.from('rooms').insert({
-                id: this.roomId,
-                game: gameName,
-                player1: playerName
-            });
-            if (error) throw error;
-
-            const subscribed = await this.subscribeChannel();
+            // 数据写入与频道订阅互不依赖，并行执行，减少创建房间首屏等待。
+            const [insertResult, subscribed] = await Promise.all([
+                this.supabase.from('rooms').insert({
+                    id: this.roomId,
+                    game: gameName,
+                    player1: playerName
+                }),
+                this.subscribeChannel()
+            ]);
+            if (insertResult.error) throw insertResult.error;
             if (!subscribed) {
                 await this.supabase.from('rooms').delete().eq('id', this.roomId);
                 throw new Error('实时频道连接超时');
@@ -192,9 +194,10 @@ class SupabaseMultiplayer {
             const subscribed = await this.subscribeChannel();
             if (!subscribed) throw new Error('实时频道连接超时');
 
-            const { error: updateError } = await this.supabase
-                .from('rooms').update({ player2: playerName }).eq('id', this.roomId);
+            const { error: updateError, data: updatedRoom } = await this.supabase
+                .from('rooms').update({ player2: playerName }).eq('id', this.roomId).is('player2', null).select('id');
             if (updateError) throw updateError;
+            if (!updatedRoom || !updatedRoom.length) throw new Error('房间刚刚被其他玩家加入');
 
             await this.channel.send({
                 type: 'broadcast',
@@ -326,6 +329,10 @@ class SupabaseMultiplayer {
 
     async getRoomList() {
         try {
+            if (!this.isConnected) {
+                const ok = await this.init();
+                if (!ok) return [];
+            }
             const { data, error } = await this.supabase
                 .from('rooms')
                 .select('*')
@@ -347,26 +354,47 @@ class SupabaseMultiplayer {
     }
 
     async leaveRoom() {
-        if (this.channel) {
-            await this.channel.send({
-                type: 'broadcast',
-                event: 'player_leave',
-                payload: { playerId: this.playerId }
-            });
-            await this.supabase.removeChannel(this.channel);
-            this.channel = null;
-        }
-
-        if (this.roomId) {
-            if (this.playerId === 1) {
-                await this.supabase.from('rooms').delete().eq('id', this.roomId);
-            } else {
-                await this.supabase.from('rooms').update({ player2: null }).eq('id', this.roomId);
+        const roomId = this.roomId;
+        const playerId = this.playerId;
+        const channel = this.channel;
+        try {
+            if (channel) {
+                try {
+                    await channel.send({
+                        type: 'broadcast',
+                        event: 'player_leave',
+                        payload: { playerId: playerId }
+                    });
+                } catch (e) {
+                    console.warn('发送离开通知失败:', e);
+                }
+                try {
+                    await this.supabase.removeChannel(channel);
+                } catch (e) {
+                    console.warn('断开房间频道失败:', e);
+                }
             }
-        }
 
-        this.roomId = null;
-        this.playerId = null;
+            if (roomId) {
+                if (playerId === 1) {
+                    let deleteError = null;
+                    for (let attempt = 0; attempt < 2; attempt++) {
+                        const result = await this.supabase.from('rooms').delete().eq('id', roomId);
+                        deleteError = result.error;
+                        if (!deleteError) break;
+                        await new Promise(resolve => setTimeout(resolve, 250));
+                    }
+                    if (deleteError) throw deleteError;
+                } else {
+                    const { error } = await this.supabase.from('rooms').update({ player2: null }).eq('id', roomId);
+                    if (error) throw error;
+                }
+            }
+        } finally {
+            if (this.channel === channel) this.channel = null;
+            if (this.roomId === roomId) this.roomId = null;
+            if (this.playerId === playerId) this.playerId = null;
+        }
     }
 
     async disconnect() {

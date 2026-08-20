@@ -1,6 +1,6 @@
 {
-  "version": "1.7.6",
-  "versionCode": 39,
+  "version": "1.7.7",
+  "versionCode": 40,
   "downloadUrl": "https://raw.githubusercontent.com/zyf-coder/classic-fc-games/main/classic-fc-games.apk",
-  "notes": "修复双人房间和游戏输入同步，新增房间及游戏内语音聊天，并恢复游戏声音"
+  "notes": "优化创建房间速度，房主退出自动销毁房间，修复房间跳转和麦克风权限，并每2秒刷新房间列表"
 }

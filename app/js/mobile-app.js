@@ -1,8 +1,8 @@
 /**
- * 移动端应用 v1.7.6
+ * 移动端应用 v1.7.7
  */
 (function() {
-    var APP_VERSION = '1.7.6';
+    var APP_VERSION = '1.7.7';
     var GAMES = [
         { name: '超级玛丽', file: 'Super Mario Bros. (JU) (PRG0) [!].nes', icon: '🍄' },
         { name: '魂斗罗', file: 'hun.nes', icon: '🔫' },
@@ -39,6 +39,8 @@
     var voiceStream = null;
     var voicePeer = null;
     var pendingVoiceCandidates = [];
+    var roomListRefreshTimer = null;
+    var roomListRefreshPending = false;
 
     // 设备ID
     function getDeviceId() {
@@ -220,6 +222,16 @@
             addChat('系统', d.playerName + ' 加入了房间');
         };
         onlineMultiplayer.onPlayerLeft = function() {
+            var departedPlayerId = arguments[0] && arguments[0].playerId;
+            if (departedPlayerId === 1 && onlinePlayerId === 2) {
+                stopVoiceChat(false);
+                onlineMultiplayer.leaveRoom().catch(function(e) { console.warn('房间销毁清理失败:', e); });
+                onlineRoomId = null;
+                onlinePlayerId = null;
+                showMessage('房主已退出，房间已销毁', 'warning');
+                showPage('onlineLobbyPage');
+                return;
+            }
             addChat('系统', '对手已离开房间');
             document.getElementById('roomPlayer2').textContent = '等待中...';
             var btn = document.getElementById('startGameBtn');
@@ -250,8 +262,15 @@
         var tabs = document.getElementById('bottomTabs');
         if (tabs) tabs.style.display = (id === 'gamePage' || id === 'roomPage') ? 'none' : 'flex';
         
+        if (roomListRefreshTimer) {
+            clearInterval(roomListRefreshTimer);
+            roomListRefreshTimer = null;
+        }
         if (id === 'onlineLobbyPage') {
-            refreshRooms();
+            if (isRoomListVisible()) refreshRooms();
+            roomListRefreshTimer = setInterval(function() {
+                if (isRoomListVisible()) refreshRooms(true);
+            }, 2000);
             var nick = document.getElementById('lobbyNickname');
             if (nick) nick.textContent = localStorage.getItem('playerNickname') || '';
         }
@@ -397,6 +416,12 @@
         showPage(onlineRoomId ? 'roomPage' : 'gameSelectPage');
     }
 
+    function isRoomListVisible() {
+        var lobby = document.getElementById('onlineLobbyPage');
+        var panel = document.getElementById('roomListPanel');
+        return !!(lobby && lobby.classList.contains('active') && panel && panel.classList.contains('active'));
+    }
+
     function showGameHeader() {
         var header = document.getElementById('gameHeader');
         if (!header) return;
@@ -462,16 +487,20 @@
     }
 
     async function createRoom() {
+        var button = document.getElementById('createRoomBtn');
+        if (button && button.disabled) return;
         var game = document.getElementById('gameSelectOnline').value;
         var name = localStorage.getItem('playerNickname');
         if (!game) { showMessage('请选择游戏', 'warning'); return; }
         if (!name) { showNickname(); return; }
         
         try {
+            if (button) { button.disabled = true; button.dataset.originalText = button.textContent; button.textContent = '创建中...'; }
             var ok = await onlineMultiplayer.createRoom(game, name);
             if (ok) onlinePlayerId = 1;
             else { showMessage('创建失败', 'error'); }
         } catch(e) { showMessage('创建失败', 'error'); }
+        finally { if (button) { button.disabled = false; button.textContent = button.dataset.originalText || '创建房间'; } }
     }
 
     async function joinRoom() {
@@ -487,10 +516,11 @@
         } catch(e) { showMessage('加入失败', 'error'); }
     }
 
-    async function refreshRooms() {
+    async function refreshRooms(silent) {
         var list = document.getElementById('roomList');
-        if (!list) return;
-        list.innerHTML = '<div class="room-list-empty">加载中...</div>';
+        if (!list || roomListRefreshPending) return;
+        roomListRefreshPending = true;
+        if (!silent) list.innerHTML = '<div class="room-list-empty">加载中...</div>';
         
         try {
             var rooms = await onlineMultiplayer.getRoomList();
@@ -498,7 +528,11 @@
             list.innerHTML = rooms.map(function(r) {
                 return '<div class="room-item"><div class="room-item-info"><div class="room-item-game">' + r.game + '</div><div class="room-item-id">房间号: ' + r.id + '</div></div><button class="room-item-join" onclick="window._join(\'' + r.id + '\')">加入</button></div>';
             }).join('');
-        } catch(e) { list.innerHTML = '<div class="room-list-empty">加载失败</div>'; }
+        } catch(e) {
+            if (!silent) list.innerHTML = '<div class="room-list-empty">加载失败</div>';
+        } finally {
+            roomListRefreshPending = false;
+        }
     }
 
     window._join = async function(id) {
@@ -564,9 +598,15 @@
         }
     }
 
-    function leaveRoom() {
+    async function leaveRoom() {
         stopVoiceChat();
-        if (onlineMultiplayer) onlineMultiplayer.leaveRoom();
+        try {
+            if (onlineMultiplayer) await onlineMultiplayer.leaveRoom();
+        } catch (e) {
+            console.warn('离开房间清理失败:', e);
+            showMessage('房间销毁失败，请重试', 'error');
+            return;
+        }
         onlineRoomId = null;
         onlinePlayerId = null;
         showPage('onlineLobbyPage');
@@ -576,6 +616,7 @@
         if (!onlineRoomId) { showMessage('请先进入联机房间', 'warning'); return; }
         if (voiceStream) { stopVoiceChat(); return; }
         try {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('当前环境不支持麦克风');
             voiceStream = await navigator.mediaDevices.getUserMedia({
                 audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
                 video: false
@@ -592,7 +633,11 @@
 
     function ensureVoicePeer() {
         if (voicePeer) return voicePeer;
-        voicePeer = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+        voicePeer = new RTCPeerConnection({ iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' },
+            { urls: 'stun:stun.cloudflare.com:3478' }
+        ] });
         if (voiceStream) voiceStream.getTracks().forEach(function(track) { voicePeer.addTrack(track, voiceStream); });
         voicePeer.onicecandidate = function(e) {
             if (e.candidate) onlineMultiplayer.sendVoiceSignal({ type: 'candidate', candidate: e.candidate });
