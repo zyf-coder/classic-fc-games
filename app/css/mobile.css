@@ -631,6 +631,8 @@ html, body {
 .room-info { flex: 1; }
 .room-id-display { font-size: 18px; font-weight: 700; color: var(--primary); letter-spacing: 2px; }
 .room-copy-btn { background: var(--primary); border: none; color: white; padding: 8px 14px; border-radius: 8px; font-size: 13px; cursor: pointer; }
+.voice-chat-btn { display: flex; align-items: center; gap: 5px; background: var(--bg-surface); border: 1px solid rgba(255,255,255,0.25); color: white; padding: 8px 10px; border-radius: 8px; cursor: pointer; }
+.voice-chat-btn.active, #gameVoiceBtn.active { background: #059669; border-color: #6ee7b7; }
 
 .room-players {
     display: flex;
@@ -704,6 +706,7 @@ html, body {
 }
 
 .room-actions { padding: 16px; }
+#remoteVoiceAudio { display: none; }
 
 /* 我的页面 */
 .profile-container {
@@ -777,6 +780,78 @@ html, body {
 
 #gamePage.active::before {
     display: none;
+}
+
+/* v1.7.6 最终覆盖：顶部工具栏按需显示 */
+#gamePage.active .game-header {
+    opacity: 0;
+    transform: translateY(-100%);
+    pointer-events: none;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+#gamePage.active .game-header.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+/* v1.7.5 安全游戏区域与页面间距 */
+.game-select-container .header {
+    padding-top: calc(28px + env(safe-area-inset-top, 0px));
+}
+
+.profile-header {
+    padding-top: calc(56px + env(safe-area-inset-top, 0px));
+}
+
+#gamePage.active {
+    --left-control-space: max(260px, calc(env(safe-area-inset-left, 0px) + 230px));
+    --right-control-space: max(300px, calc(env(safe-area-inset-right, 0px) + 270px));
+}
+
+#gamePage.active .game-screen-container {
+    left: var(--left-control-space);
+    right: var(--right-control-space);
+    width: auto;
+}
+
+#gamePage.active .game-header {
+    opacity: 0;
+    transform: translateY(-100%);
+    pointer-events: none;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+#gamePage.active .game-header.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+#gamePage.active .dpad-area {
+    left: max(36px, calc(env(safe-area-inset-left, 0px) + 20px));
+}
+
+#gamePage.active .right-controls {
+    right: max(36px, calc(env(safe-area-inset-right, 0px) + 20px));
+    width: 220px;
+    height: 210px;
+    display: block;
+}
+
+#gamePage.active .action-area {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 156px;
+    height: 156px;
+}
+
+#gamePage.active .system-btns {
+    position: absolute;
+    left: 0;
+    bottom: 8px;
 }
 
 /* 横屏时隐藏虚拟按键 */
@@ -908,4 +983,17 @@ html, body {
 
 #gamePage.active::before {
     display: none;
+}
+
+#gamePage.active .game-header {
+    opacity: 0;
+    transform: translateY(-100%);
+    pointer-events: none;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+#gamePage.active .game-header.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
 }

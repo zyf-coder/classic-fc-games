@@ -1,8 +1,8 @@
 /**
- * 移动端应用 v1.7.4
+ * 移动端应用 v1.7.6
  */
 (function() {
-    var APP_VERSION = '1.7.4';
+    var APP_VERSION = '1.7.6';
     var GAMES = [
         { name: '超级玛丽', file: 'Super Mario Bros. (JU) (PRG0) [!].nes', icon: '🍄' },
         { name: '魂斗罗', file: 'hun.nes', icon: '🔫' },
@@ -32,9 +32,13 @@
     var isPaused = false;
     var mainBgm = null;
     var onlineMultiplayer = null;
+    var gameHeaderTimer = null;
     var onlinePlayerId = null;
     var onlineRoomId = null;
     var headerTimeout = null;
+    var voiceStream = null;
+    var voicePeer = null;
+    var pendingVoiceCandidates = [];
 
     // 设备ID
     function getDeviceId() {
@@ -99,8 +103,17 @@
         bind('roomCopyBtn', copyRoomId);
         bind('startGameBtn', startOnlineGame);
         bind('chatSendBtn', sendChat);
+        bind('voiceChatBtn', toggleVoiceChat);
+        bind('gameVoiceBtn', toggleVoiceChat);
         bind('changeNicknameBtn', showNickname);
         bind('aboutBtn', showAbout);
+
+        var gamePage = document.getElementById('gamePage');
+        if (gamePage) {
+            gamePage.addEventListener('pointerdown', function(e) {
+                if (e.clientY <= 80) showGameHeader();
+            }, true);
+        }
         
         // Tab切换
         document.querySelectorAll('.tab-item').forEach(function(tab) {
@@ -150,21 +163,19 @@
             if (!btn) return;
             var key = keys[id];
             
-            btn.ontouchstart = function(e) {
-                e.preventDefault();
-                if (nes && nes.keyboard) nes.keyboard.state1[nes.keyboard.keys[key]] = 0x41;
-            };
-            btn.ontouchend = function(e) {
-                e.preventDefault();
-                if (nes && nes.keyboard) nes.keyboard.state1[nes.keyboard.keys[key]] = 0x40;
-            };
-            btn.onmousedown = function() {
-                if (nes && nes.keyboard) nes.keyboard.state1[nes.keyboard.keys[key]] = 0x41;
-            };
-            btn.onmouseup = function() {
-                if (nes && nes.keyboard) nes.keyboard.state1[nes.keyboard.keys[key]] = 0x40;
-            };
+            btn.ontouchstart = function(e) { e.preventDefault(); setGameInput(key, 0x41); };
+            btn.ontouchend = function(e) { e.preventDefault(); setGameInput(key, 0x40); };
+            btn.onmousedown = function() { setGameInput(key, 0x41); };
+            btn.onmouseup = function() { setGameInput(key, 0x40); };
         });
+    }
+
+    function setGameInput(key, value) {
+        if (nes && nes.keyboard) {
+            var state = onlineRoomId && onlinePlayerId === 2 ? nes.keyboard.state2 : nes.keyboard.state1;
+            state[nes.keyboard.keys[key]] = value;
+        }
+        if (onlineRoomId && onlineMultiplayer) onlineMultiplayer.sendInput({ key: key, value: value });
     }
 
     function initBgm() {
@@ -192,8 +203,16 @@
             });
         }
         
-        onlineMultiplayer.onRoomCreated = function(id) { onlineRoomId = id; showRoom(id, true); };
-        onlineMultiplayer.onRoomJoined = function(d) { onlineRoomId = d.roomId; onlinePlayerId = d.playerId; showRoom(d.roomId, false); };
+        onlineMultiplayer.onRoomCreated = function(id) {
+            onlineRoomId = id;
+            onlinePlayerId = 1;
+            showRoom(id, true);
+        };
+        onlineMultiplayer.onRoomJoined = function(d) {
+            onlineRoomId = d.roomId;
+            onlinePlayerId = d.playerId;
+            showRoom(d.roomId, false, d.hostName);
+        };
         onlineMultiplayer.onPlayerJoined = function(d) {
             document.getElementById('roomPlayer2').textContent = d.playerName || '玩家2';
             var btn = document.getElementById('startGameBtn');
@@ -207,6 +226,18 @@
             if (btn) { btn.disabled = true; btn.textContent = '等待对手加入...'; }
         };
         onlineMultiplayer.onChatMessage = function(d) { addChat(d.playerName, d.message); };
+        onlineMultiplayer.onPlayerInput = function(input, playerId) {
+            if (!nes || !nes.keyboard || !input) return;
+            var state = playerId === 2 ? nes.keyboard.state2 : nes.keyboard.state1;
+            if (Object.prototype.hasOwnProperty.call(nes.keyboard.keys, input.key)) {
+                state[nes.keyboard.keys[input.key]] = input.value;
+            }
+        };
+        onlineMultiplayer.onGameStart = function(d) {
+            var game = GAMES.find(function(g) { return g.name === d.game; });
+            if (game) startGame(game);
+        };
+        onlineMultiplayer.onVoiceSignal = handleVoiceSignal;
         onlineMultiplayer.onError = function(m) { showMessage(m, 'error'); };
     }
 
@@ -217,7 +248,7 @@
             t.classList.toggle('active', t.dataset.page === id);
         });
         var tabs = document.getElementById('bottomTabs');
-        if (tabs) tabs.style.display = id === 'gamePage' ? 'none' : 'flex';
+        if (tabs) tabs.style.display = (id === 'gamePage' || id === 'roomPage') ? 'none' : 'flex';
         
         if (id === 'onlineLobbyPage') {
             refreshRooms();
@@ -241,6 +272,7 @@
         document.getElementById('bottomTabs').style.display = 'none';
         
         setGameOrientation('landscape');
+        showGameHeader();
         
         setTimeout(function() { loadROM(game.file); }, 300);
     }
@@ -265,6 +297,14 @@
             }
             
             // 创建UI构造函数
+            var audioContext = null;
+            var nextAudioTime = 0;
+            try {
+                var AudioCtor = window.AudioContext || window.webkitAudioContext;
+                audioContext = AudioCtor ? new AudioCtor() : null;
+                if (audioContext && audioContext.state === 'suspended') audioContext.resume();
+            } catch (audioError) { console.warn('音频初始化失败:', audioError); }
+
             var GameUI = function(nesInstance) {
                 this.nes = nesInstance;
                 this.canvasImageData = canvasImageData;
@@ -286,12 +326,31 @@
                     this.ctx.putImageData(this.canvasImageData, 0, 0);
                 };
                 
-                this.writeAudio = function() {};
+                this.writeAudio = function(samples) {
+                    if (!audioContext || !samples || !samples.length) return;
+                    var frameCount = Math.floor(samples.length / 2);
+                    var buffer = audioContext.createBuffer(2, frameCount, audioContext.sampleRate);
+                    var left = buffer.getChannelData(0), right = buffer.getChannelData(1);
+                    for (var n = 0, j = 0; n < samples.length; n += 2, j++) {
+                        left[j] = Math.max(-1, Math.min(1, samples[n] / 32768));
+                        right[j] = Math.max(-1, Math.min(1, samples[n + 1] / 32768));
+                    }
+                    var source = audioContext.createBufferSource();
+                    source.buffer = buffer;
+                    source.connect(audioContext.destination);
+                    nextAudioTime = Math.max(audioContext.currentTime, nextAudioTime);
+                    source.start(nextAudioTime);
+                    nextAudioTime += buffer.duration;
+                };
                 this.updateStatus = function(s) { console.log('NES:', s); };
                 this.enable = function() {};
             };
             
-            nes = new JSNES({ ui: GameUI });
+            nes = new JSNES({
+                ui: GameUI,
+                emulateSound: true,
+                sampleRate: audioContext ? audioContext.sampleRate : 44100
+            });
             
             var xhr = new XMLHttpRequest();
             xhr.open('GET', 'roms/' + file, true);
@@ -326,6 +385,7 @@
     }
 
     function goBack() {
+        clearTimeout(gameHeaderTimer);
         document.getElementById('pauseOverlay').classList.remove('visible');
         if (nes) { try { nes.stop(); } catch(e) {} nes = null; }
         currentGame = null;
@@ -334,7 +394,17 @@
         
         setGameOrientation('portrait');
         
-        showPage('gameSelectPage');
+        showPage(onlineRoomId ? 'roomPage' : 'gameSelectPage');
+    }
+
+    function showGameHeader() {
+        var header = document.getElementById('gameHeader');
+        if (!header) return;
+        header.classList.add('visible');
+        clearTimeout(gameHeaderTimer);
+        gameHeaderTimer = setTimeout(function() {
+            header.classList.remove('visible');
+        }, 1000);
     }
 
     function togglePause() {
@@ -399,7 +469,7 @@
         
         try {
             var ok = await onlineMultiplayer.createRoom(game, name);
-            if (ok) { onlinePlayerId = 1; showRoom(onlineMultiplayer.roomId, true); }
+            if (ok) onlinePlayerId = 1;
             else { showMessage('创建失败', 'error'); }
         } catch(e) { showMessage('创建失败', 'error'); }
     }
@@ -412,7 +482,7 @@
         
         try {
             var ok = await onlineMultiplayer.joinRoom(id, name);
-            if (ok) { onlinePlayerId = 2; showRoom(id, false); }
+            if (ok) onlinePlayerId = 2;
             else { showMessage('加入失败', 'error'); }
         } catch(e) { showMessage('加入失败', 'error'); }
     }
@@ -435,15 +505,20 @@
         var name = localStorage.getItem('playerNickname');
         if (!name) { showNickname(); return; }
         var ok = await onlineMultiplayer.joinRoom(id, name);
-        if (ok) { onlinePlayerId = 2; showRoom(id, false); }
+        if (ok) onlinePlayerId = 2;
     };
 
-    function showRoom(id, isHost) {
+    function showRoom(id, isHost, hostName) {
         document.getElementById('roomIdDisplay').textContent = id;
-        document.getElementById('roomPlayer1').textContent = localStorage.getItem('playerNickname') || '玩家1';
-        document.getElementById('roomPlayer2').textContent = isHost ? '等待中...' : '玩家2';
+        document.getElementById('roomPlayer1').textContent = isHost ?
+            (localStorage.getItem('playerNickname') || '玩家1') : (hostName || '房主');
+        document.getElementById('roomPlayer2').textContent = isHost ? '等待中...' :
+            (localStorage.getItem('playerNickname') || '玩家2');
         var btn = document.getElementById('startGameBtn');
-        if (btn) { btn.disabled = isHost; btn.textContent = isHost ? '等待对手加入...' : '开始游戏'; }
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = isHost ? '等待对手加入...' : '等待房主开始...';
+        }
         showPage('roomPage');
         document.getElementById('chatMessages').innerHTML = '<div class="chat-system">欢迎来到房间</div>';
     }
@@ -467,22 +542,134 @@
         var c = document.getElementById('chatMessages');
         var d = document.createElement('div');
         d.className = 'chat-message';
-        d.innerHTML = '<div class="chat-message-name">' + name + '</div><div class="chat-message-text">' + msg + '</div>';
+        var nameEl = document.createElement('div');
+        var textEl = document.createElement('div');
+        nameEl.className = 'chat-message-name';
+        textEl.className = 'chat-message-text';
+        nameEl.textContent = name || '玩家';
+        textEl.textContent = msg || '';
+        d.appendChild(nameEl);
+        d.appendChild(textEl);
         c.appendChild(d);
         c.scrollTop = c.scrollHeight;
     }
 
     function startOnlineGame() {
+        if (onlinePlayerId !== 1) return;
         var game = document.getElementById('gameSelectOnline').value || '超级玛丽';
         var g = GAMES.find(function(x) { return x.name === game; });
-        if (g) startGame(g);
+        if (g) {
+            onlineMultiplayer.sendGameStart(g.name);
+            startGame(g);
+        }
     }
 
     function leaveRoom() {
+        stopVoiceChat();
         if (onlineMultiplayer) onlineMultiplayer.leaveRoom();
         onlineRoomId = null;
         onlinePlayerId = null;
         showPage('onlineLobbyPage');
+    }
+
+    async function toggleVoiceChat() {
+        if (!onlineRoomId) { showMessage('请先进入联机房间', 'warning'); return; }
+        if (voiceStream) { stopVoiceChat(); return; }
+        try {
+            voiceStream = await navigator.mediaDevices.getUserMedia({
+                audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+                video: false
+            });
+            ensureVoicePeer();
+            updateVoiceButtons(true);
+            await onlineMultiplayer.sendVoiceSignal({ type: 'ready' });
+            showMessage('语音已开启', 'success');
+        } catch (e) {
+            voiceStream = null;
+            showMessage('无法使用麦克风，请检查权限', 'error');
+        }
+    }
+
+    function ensureVoicePeer() {
+        if (voicePeer) return voicePeer;
+        voicePeer = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+        if (voiceStream) voiceStream.getTracks().forEach(function(track) { voicePeer.addTrack(track, voiceStream); });
+        voicePeer.onicecandidate = function(e) {
+            if (e.candidate) onlineMultiplayer.sendVoiceSignal({ type: 'candidate', candidate: e.candidate });
+        };
+        voicePeer.ontrack = function(e) {
+            var audio = document.getElementById('remoteVoiceAudio');
+            if (audio) { audio.srcObject = e.streams[0]; audio.play().catch(function() {}); }
+        };
+        voicePeer.onconnectionstatechange = function() {
+            if (voicePeer && voicePeer.connectionState === 'connected') showMessage('语音通话已连接', 'success');
+        };
+        return voicePeer;
+    }
+
+    async function createVoiceOffer() {
+        var peer = ensureVoicePeer();
+        if (peer.signalingState !== 'stable') return;
+        var offer = await peer.createOffer();
+        await peer.setLocalDescription(offer);
+        await onlineMultiplayer.sendVoiceSignal({ type: 'offer', sdp: peer.localDescription });
+    }
+
+    async function handleVoiceSignal(signal) {
+        if (!signal) return;
+        try {
+            if (signal.type === 'hangup') { stopVoiceChat(false); return; }
+            if (signal.type === 'ready') {
+                if (!voiceStream) return;
+                if (onlinePlayerId === 1) await createVoiceOffer();
+                else await onlineMultiplayer.sendVoiceSignal({ type: 'voice_ack' });
+                return;
+            }
+            if (signal.type === 'voice_ack' && onlinePlayerId === 1 && voiceStream) {
+                await createVoiceOffer();
+                return;
+            }
+            var peer = ensureVoicePeer();
+            if (signal.type === 'offer') {
+                await peer.setRemoteDescription(signal.sdp);
+                var answer = await peer.createAnswer();
+                await peer.setLocalDescription(answer);
+                await onlineMultiplayer.sendVoiceSignal({ type: 'answer', sdp: peer.localDescription });
+            } else if (signal.type === 'answer') {
+                await peer.setRemoteDescription(signal.sdp);
+            } else if (signal.type === 'candidate') {
+                if (peer.remoteDescription) await peer.addIceCandidate(signal.candidate);
+                else pendingVoiceCandidates.push(signal.candidate);
+            }
+            if (peer.remoteDescription && pendingVoiceCandidates.length) {
+                var candidates = pendingVoiceCandidates.splice(0);
+                for (var i = 0; i < candidates.length; i++) await peer.addIceCandidate(candidates[i]);
+            }
+        } catch (e) { console.error('语音连接失败:', e); }
+    }
+
+    function stopVoiceChat(notifyPeer) {
+        if (notifyPeer !== false && onlineMultiplayer && onlineRoomId) {
+            onlineMultiplayer.sendVoiceSignal({ type: 'hangup' });
+        }
+        if (voicePeer) { voicePeer.close(); voicePeer = null; }
+        if (voiceStream) voiceStream.getTracks().forEach(function(track) { track.stop(); });
+        voiceStream = null;
+        pendingVoiceCandidates = [];
+        var audio = document.getElementById('remoteVoiceAudio');
+        if (audio) audio.srcObject = null;
+        updateVoiceButtons(false);
+    }
+
+    function updateVoiceButtons(enabled) {
+        var roomButton = document.getElementById('voiceChatBtn');
+        var gameButton = document.getElementById('gameVoiceBtn');
+        if (roomButton) {
+            roomButton.classList.toggle('active', enabled);
+            var label = roomButton.querySelector('span');
+            if (label) label.textContent = enabled ? '关闭语音' : '开启语音';
+        }
+        if (gameButton) gameButton.classList.toggle('active', enabled);
     }
 
     // 关于我们

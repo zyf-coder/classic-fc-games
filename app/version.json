@@ -1,6 +1,6 @@
 {
-  "version": "1.7.4",
-  "versionCode": 37,
+  "version": "1.7.6",
+  "versionCode": 39,
   "downloadUrl": "https://raw.githubusercontent.com/zyf-coder/classic-fc-games/main/classic-fc-games.apk",
-  "notes": "放大左右游戏按键，调整选择和开始按钮到右侧，增强顶部按钮可见性"
+  "notes": "修复双人房间和游戏输入同步，新增房间及游戏内语音聊天，并恢复游戏声音"
 }

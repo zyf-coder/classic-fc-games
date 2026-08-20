@@ -19,6 +19,8 @@ class SupabaseMultiplayer {
         this.onPlayerInput = null;
         this.onGameState = null;
         this.onChatMessage = null;
+        this.onGameStart = null;
+        this.onVoiceSignal = null;
         this.onError = null;
     }
 
@@ -126,28 +128,22 @@ class SupabaseMultiplayer {
 
             this.setupChannelListeners();
 
-            const status = await this.channel.subscribe();
-            console.log('频道订阅状态:', status);
-            
-            if (status === 'SUBSCRIBED') {
-                // 保存房间信息
-                const { data, error } = await this.supabase.from('rooms').insert({
-                    id: this.roomId,
-                    game: gameName,
-                    player1: playerName,
-                    status: 'waiting'
-                }).select();
+            const { error } = await this.supabase.from('rooms').insert({
+                id: this.roomId,
+                game: gameName,
+                player1: playerName
+            });
+            if (error) throw error;
 
-                if (error) {
-                    console.error('保存房间失败:', error);
-                    if (this.onError) this.onError('创建房间失败: ' + error.message);
-                    return false;
-                }
-
-                console.log('✅ 房间创建成功:', this.roomId);
-                if (this.onRoomCreated) this.onRoomCreated(this.roomId);
-                return true;
+            const subscribed = await this.subscribeChannel();
+            if (!subscribed) {
+                await this.supabase.from('rooms').delete().eq('id', this.roomId);
+                throw new Error('实时频道连接超时');
             }
+
+            console.log('✅ 房间创建成功:', this.roomId);
+            if (this.onRoomCreated) this.onRoomCreated(this.roomId);
+            return true;
         } catch (e) {
             console.error('创建房间异常:', e);
             if (this.onError) this.onError('创建房间失败: ' + e.message);
@@ -181,6 +177,10 @@ class SupabaseMultiplayer {
                 if (this.onError) this.onError('房间不存在');
                 return false;
             }
+            if (room.player2) {
+                if (this.onError) this.onError('房间人数已满');
+                return false;
+            }
 
             // 创建频道
             this.channel = this.supabase.channel(`room:${this.roomId}`, {
@@ -189,35 +189,52 @@ class SupabaseMultiplayer {
 
             this.setupChannelListeners();
 
-            const status = await this.channel.subscribe();
-            console.log('频道订阅状态:', status);
-            
-            if (status === 'SUBSCRIBED') {
-                // 通知房主
-                await this.channel.send({
-                    type: 'broadcast',
-                    event: 'player_join',
-                    payload: { playerId: 2, playerName: playerName }
-                });
+            const subscribed = await this.subscribeChannel();
+            if (!subscribed) throw new Error('实时频道连接超时');
 
-                // 更新房间
-                await this.supabase
-                    .from('rooms')
-                    .update({ player2: playerName, status: 'ready' })
-                    .eq('id', this.roomId);
+            const { error: updateError } = await this.supabase
+                .from('rooms').update({ player2: playerName }).eq('id', this.roomId);
+            if (updateError) throw updateError;
 
-                console.log('✅ 加入房间成功');
-                if (this.onRoomJoined) {
-                    this.onRoomJoined({ roomId: this.roomId, playerId: 2, game: room.game });
-                }
-                return true;
+            await this.channel.send({
+                type: 'broadcast',
+                event: 'player_join',
+                payload: { playerId: 2, playerName: playerName }
+            });
+
+            console.log('✅ 加入房间成功');
+            if (this.onRoomJoined) {
+                this.onRoomJoined({ roomId: this.roomId, playerId: 2, game: room.game, hostName: room.player1 });
             }
+            return true;
         } catch (e) {
             console.error('加入房间异常:', e);
             if (this.onError) this.onError('加入房间失败: ' + e.message);
         }
         
         return false;
+    }
+
+    subscribeChannel() {
+        return new Promise((resolve) => {
+            let settled = false;
+            const timer = setTimeout(() => {
+                if (!settled) { settled = true; resolve(false); }
+            }, 8000);
+            this.channel.subscribe((status) => {
+                console.log('频道订阅状态:', status);
+                if (settled) return;
+                if (status === 'SUBSCRIBED') {
+                    settled = true;
+                    clearTimeout(timer);
+                    resolve(true);
+                } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+                    settled = true;
+                    clearTimeout(timer);
+                    resolve(false);
+                }
+            });
+        });
     }
 
     setupChannelListeners() {
@@ -249,6 +266,16 @@ class SupabaseMultiplayer {
                 this.onChatMessage(payload.payload);
             }
         });
+
+        this.channel.on('broadcast', { event: 'game_start' }, (payload) => {
+            if (this.onGameStart) this.onGameStart(payload.payload);
+        });
+
+        this.channel.on('broadcast', { event: 'voice_signal' }, (payload) => {
+            if (this.onVoiceSignal && payload.payload.playerId !== this.playerId) {
+                this.onVoiceSignal(payload.payload.signal);
+            }
+        });
     }
 
     sendInput(input) {
@@ -257,6 +284,20 @@ class SupabaseMultiplayer {
             type: 'broadcast',
             event: 'player_input',
             payload: { playerId: this.playerId, input: input }
+        });
+    }
+
+    sendGameStart(game) {
+        if (!this.channel) return Promise.resolve();
+        return this.channel.send({ type: 'broadcast', event: 'game_start', payload: { game: game } });
+    }
+
+    sendVoiceSignal(signal) {
+        if (!this.channel) return Promise.resolve();
+        return this.channel.send({
+            type: 'broadcast',
+            event: 'voice_signal',
+            payload: { playerId: this.playerId, signal: signal }
         });
     }
 
@@ -288,7 +329,7 @@ class SupabaseMultiplayer {
             const { data, error } = await this.supabase
                 .from('rooms')
                 .select('*')
-                .eq('status', 'waiting')
+                .is('player2', null)
                 .order('created_at', { ascending: false })
                 .limit(20);
             
@@ -317,7 +358,11 @@ class SupabaseMultiplayer {
         }
 
         if (this.roomId) {
-            await this.supabase.from('rooms').delete().eq('id', this.roomId);
+            if (this.playerId === 1) {
+                await this.supabase.from('rooms').delete().eq('id', this.roomId);
+            } else {
+                await this.supabase.from('rooms').update({ player2: null }).eq('id', this.roomId);
+            }
         }
 
         this.roomId = null;

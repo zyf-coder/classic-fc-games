@@ -1,4 +1,4 @@
-const CACHE_NAME = 'classic-fc-games-v6';
+const CACHE_NAME = 'classic-fc-games-v8';
 const urlsToCache = [
     './',
     './index.html',
