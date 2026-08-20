@@ -1,8 +1,8 @@
 /**
- * 移动端应用 v1.6.7
+ * 移动端应用 v1.7.2
  */
 (function() {
-    var APP_VERSION = '1.6.7';
+    var APP_VERSION = '1.7.2';
     var GAMES = [
         { name: '超级玛丽', file: 'Super Mario Bros. (JU) (PRG0) [!].nes', icon: '🍄' },
         { name: '魂斗罗', file: 'hun.nes', icon: '🔫' },
@@ -240,12 +240,7 @@
         document.getElementById('gameTitle').textContent = game.name;
         document.getElementById('bottomTabs').style.display = 'none';
         
-        // 切换到横屏
-        try {
-            if (screen.orientation && screen.orientation.lock) {
-                screen.orientation.lock('landscape').catch(function() {});
-            }
-        } catch(e) {}
+        setGameOrientation('landscape');
         
         setTimeout(function() { loadROM(game.file); }, 300);
     }
@@ -253,7 +248,7 @@
     function loadROM(file) {
         try {
             var emulator = document.getElementById('emulator');
-            emulator.innerHTML = '<canvas width="256" height="240" style="width:100%;height:100%;object-fit:contain;"></canvas>';
+            emulator.innerHTML = '<canvas width="256" height="240"></canvas>';
             var canvas = emulator.querySelector('canvas');
             var ctx = canvas.getContext('2d');
             
@@ -306,21 +301,28 @@
                     try {
                         nes.loadRom(xhr.responseText);
                         nes.start();
-                        showMessage('游戏加载成功', 'success');
                     } catch(e) {
                         console.error('ROM加载失败:', e);
-                        showMessage('ROM加载失败', 'error');
                     }
-                } else {
-                    showMessage('游戏加载失败', 'error');
                 }
             };
-            xhr.onerror = function() { showMessage('网络错误', 'error'); };
+            xhr.onerror = function() {};
             xhr.send();
         } catch(e) {
             console.error('初始化失败:', e);
-            showMessage('游戏初始化失败', 'error');
         }
+    }
+
+    function setGameOrientation(orientation) {
+        if (window.NativeOrientation) {
+            window.NativeOrientation.set(orientation);
+            return;
+        }
+        try {
+            if (screen.orientation && screen.orientation.lock) {
+                screen.orientation.lock(orientation).catch(function() {});
+            }
+        } catch(e) {}
     }
 
     function goBack() {
@@ -330,10 +332,7 @@
         isPaused = false;
         if (mainBgm) mainBgm.play().catch(function() {});
         
-        // 恢复竖屏
-        try {
-            if (screen.orientation) screen.orientation.unlock();
-        } catch(e) {}
+        setGameOrientation('portrait');
         
         showPage('gameSelectPage');
     }
