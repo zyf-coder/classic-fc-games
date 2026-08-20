@@ -1,8 +1,8 @@
 /**
- * 移动端应用 v1.7.7
+ * 移动端应用 v1.7.8
  */
 (function() {
-    var APP_VERSION = '1.7.7';
+    var APP_VERSION = '1.7.8';
     var GAMES = [
         { name: '超级玛丽', file: 'Super Mario Bros. (JU) (PRG0) [!].nes', icon: '🍄' },
         { name: '魂斗罗', file: 'hun.nes', icon: '🔫' },
