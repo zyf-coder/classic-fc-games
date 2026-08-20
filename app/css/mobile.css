@@ -775,6 +775,10 @@ html, body {
     display: none;
 }
 
+#gamePage.active::before {
+    display: none;
+}
+
 /* 横屏时隐藏虚拟按键 */
 #gamePage.active .dpad-area,
 #gamePage.active .action-area,
@@ -807,4 +811,101 @@ html, body {
     #gamePage.active .game-header {
         display: flex;
     }
+}
+
+/* v1.7.4 游戏控制布局 */
+#gamePage.active .game-header {
+    display: flex;
+    height: 58px;
+    padding-left: max(32px, calc(env(safe-area-inset-left, 0px) + 20px));
+    padding-right: max(32px, calc(env(safe-area-inset-right, 0px) + 20px));
+    opacity: 1;
+    z-index: 250;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.82), transparent);
+}
+
+#gamePage.active .header-btn {
+    background: rgba(15,23,42,0.94);
+    border: 2px solid rgba(255,255,255,0.9);
+    border-radius: 8px;
+    color: #fff;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.65);
+}
+
+#gamePage.active .header-btn:active {
+    background: #fff;
+    color: #0f172a;
+}
+
+#gamePage.active .game-title {
+    padding: 6px 12px;
+    border-radius: 6px;
+    background: rgba(15,23,42,0.82);
+}
+
+#gamePage.active .dpad-area {
+    display: block;
+    left: max(40px, calc(env(safe-area-inset-left, 0px) + 24px));
+    bottom: max(48px, calc(env(safe-area-inset-bottom, 0px) + 24px));
+    width: 180px;
+    height: 180px;
+}
+
+#gamePage.active .dpad-btn {
+    width: 62px;
+    height: 62px;
+    font-size: 24px;
+}
+
+#gamePage.active .right-controls {
+    position: fixed;
+    right: max(40px, calc(env(safe-area-inset-right, 0px) + 24px));
+    bottom: max(48px, calc(env(safe-area-inset-bottom, 0px) + 24px));
+    display: flex;
+    align-items: flex-end;
+    gap: 18px;
+    z-index: 200;
+}
+
+#gamePage.active .action-area {
+    position: relative;
+    inset: auto;
+    display: block;
+    width: 156px;
+    height: 156px;
+}
+
+#gamePage.active .action-btn {
+    width: 70px;
+    height: 70px;
+    font-size: 24px;
+}
+
+#gamePage.active .system-btns {
+    position: static;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-bottom: 10px;
+    transform: none;
+}
+
+#gamePage.active .system-btn {
+    width: 72px;
+    height: 42px;
+    padding: 0;
+    border: 2px solid rgba(255,255,255,0.75);
+    border-radius: 8px;
+    background: rgba(15,23,42,0.9);
+    color: #fff;
+    font-weight: 600;
+}
+
+#gamePage.active .system-btn:active {
+    background: #fff;
+    color: #0f172a;
+}
+
+#gamePage.active::before {
+    display: none;
 }

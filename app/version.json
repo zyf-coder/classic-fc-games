@@ -1,6 +1,6 @@
 {
-  "version": "1.7.3",
-  "versionCode": 36,
+  "version": "1.7.4",
+  "versionCode": 37,
   "downloadUrl": "https://raw.githubusercontent.com/zyf-coder/classic-fc-games/main/classic-fc-games.apk",
-  "notes": "增大头部间距，优化游戏横屏显示，移除启动提示消息"
+  "notes": "放大左右游戏按键，调整选择和开始按钮到右侧，增强顶部按钮可见性"
 }
