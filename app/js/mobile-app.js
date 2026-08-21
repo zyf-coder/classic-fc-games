@@ -1,8 +1,23 @@
 /**
  * 移动端应用 v1.7.9
  */
-(function() {
-    var APP_VERSION = "1.7.10";
+$1
+
+    // 下载链接配置（支持自定义域名和 GitHub 备用）
+    var DOWNLOAD_CONFIG = {
+        primaryDomain: 'https://onlyforus.online',
+        fallbackDomain: 'https://raw.githubusercontent.com/zyf-coder/classic-fc-games/main',
+        apkPath: '/classic-fc-games.apk'
+    };
+    
+    function getDownloadUrl() {
+        return DOWNLOAD_CONFIG.primaryDomain + DOWNLOAD_CONFIG.apkPath;
+    }
+    
+    function getGithubDownloadUrl() {
+        return DOWNLOAD_CONFIG.fallbackDomain + DOWNLOAD_CONFIG.apkPath;
+    }
+    var APP_VERSION = "1.7.11";
     var GAMES = [
         { name: '超级玛丽', file: 'Super Mario Bros. (JU) (PRG0) [!].nes', icon: '🍄' },
         { name: '魂斗罗', file: 'hun.nes', icon: '🔫' },
@@ -61,7 +76,22 @@
         msg.className = 'el-message el-message--' + type;
         msg.innerHTML = '<span class="el-message-icon">' + icons[type] + '</span><span>' + text + '</span>';
         document.body.appendChild(msg);
-        setTimeout(function() { msg.remove(); }, 2500);
+        setTimeout$1
+
+    // 下载链接配置（支持自定义域名和 GitHub 备用）
+    var DOWNLOAD_CONFIG = {
+        primaryDomain: 'https://onlyforus.online',
+        fallbackDomain: 'https://raw.githubusercontent.com/zyf-coder/classic-fc-games/main',
+        apkPath: '/classic-fc-games.apk'
+    };
+    
+    function getDownloadUrl() {
+        return DOWNLOAD_CONFIG.primaryDomain + DOWNLOAD_CONFIG.apkPath;
+    }
+    
+    function getGithubDownloadUrl() {
+        return DOWNLOAD_CONFIG.fallbackDomain + DOWNLOAD_CONFIG.apkPath;
+    } msg.remove(); }, 2500);
     }
 
     // 初始化
@@ -207,7 +237,22 @@ u: 'KEY_SELECT', i: 'KEY_START'
 
     function initBgm() {
         mainBgm = document.getElementById('mainBgm');
-        if (mainBgm) { mainBgm.volume = 0.3; mainBgm.play().catch(function() {}); }
+        if (mainBgm) { mainBgm.volume = 0.3; mainBgm.play().catch$1
+
+    // 下载链接配置（支持自定义域名和 GitHub 备用）
+    var DOWNLOAD_CONFIG = {
+        primaryDomain: 'https://onlyforus.online',
+        fallbackDomain: 'https://raw.githubusercontent.com/zyf-coder/classic-fc-games/main',
+        apkPath: '/classic-fc-games.apk'
+    };
+    
+    function getDownloadUrl() {
+        return DOWNLOAD_CONFIG.primaryDomain + DOWNLOAD_CONFIG.apkPath;
+    }
+    
+    function getGithubDownloadUrl() {
+        return DOWNLOAD_CONFIG.fallbackDomain + DOWNLOAD_CONFIG.apkPath;
+    }}); }
     }
 
     function initOnline() {
@@ -293,7 +338,22 @@ u: 'KEY_SELECT', i: 'KEY_START'
         }
         if (id === 'onlineLobbyPage') {
             if (isRoomListVisible()) refreshRooms();
-            roomListRefreshTimer = setInterval(function() {
+            roomListRefreshTimer = setInterval$1
+
+    // 下载链接配置（支持自定义域名和 GitHub 备用）
+    var DOWNLOAD_CONFIG = {
+        primaryDomain: 'https://onlyforus.online',
+        fallbackDomain: 'https://raw.githubusercontent.com/zyf-coder/classic-fc-games/main',
+        apkPath: '/classic-fc-games.apk'
+    };
+    
+    function getDownloadUrl() {
+        return DOWNLOAD_CONFIG.primaryDomain + DOWNLOAD_CONFIG.apkPath;
+    }
+    
+    function getGithubDownloadUrl() {
+        return DOWNLOAD_CONFIG.fallbackDomain + DOWNLOAD_CONFIG.apkPath;
+    }
                 if (isRoomListVisible()) refreshRooms(true);
             }, 2000);
             var nick = document.getElementById('lobbyNickname');
@@ -320,7 +380,22 @@ u: 'KEY_SELECT', i: 'KEY_START'
         setGameOrientation('landscape');
         showGameHeader();
         
-        setTimeout(function() { loadROM(game.file); }, 300);
+        setTimeout$1
+
+    // 下载链接配置（支持自定义域名和 GitHub 备用）
+    var DOWNLOAD_CONFIG = {
+        primaryDomain: 'https://onlyforus.online',
+        fallbackDomain: 'https://raw.githubusercontent.com/zyf-coder/classic-fc-games/main',
+        apkPath: '/classic-fc-games.apk'
+    };
+    
+    function getDownloadUrl() {
+        return DOWNLOAD_CONFIG.primaryDomain + DOWNLOAD_CONFIG.apkPath;
+    }
+    
+    function getGithubDownloadUrl() {
+        return DOWNLOAD_CONFIG.fallbackDomain + DOWNLOAD_CONFIG.apkPath;
+    } loadROM(game.file); }, 300);
     }
 
     function loadROM(file) {
@@ -425,7 +500,22 @@ u: 'KEY_SELECT', i: 'KEY_START'
         }
         try {
             if (screen.orientation && screen.orientation.lock) {
-                screen.orientation.lock(orientation).catch(function() {});
+                screen.orientation.lock(orientation).catch$1
+
+    // 下载链接配置（支持自定义域名和 GitHub 备用）
+    var DOWNLOAD_CONFIG = {
+        primaryDomain: 'https://onlyforus.online',
+        fallbackDomain: 'https://raw.githubusercontent.com/zyf-coder/classic-fc-games/main',
+        apkPath: '/classic-fc-games.apk'
+    };
+    
+    function getDownloadUrl() {
+        return DOWNLOAD_CONFIG.primaryDomain + DOWNLOAD_CONFIG.apkPath;
+    }
+    
+    function getGithubDownloadUrl() {
+        return DOWNLOAD_CONFIG.fallbackDomain + DOWNLOAD_CONFIG.apkPath;
+    }});
             }
         } catch(e) {}
     }
@@ -436,7 +526,22 @@ u: 'KEY_SELECT', i: 'KEY_START'
         if (nes) { try { nes.stop(); } catch(e) {} nes = null; }
         currentGame = null;
         isPaused = false;
-        if (mainBgm) mainBgm.play().catch(function() {});
+        if (mainBgm) mainBgm.play().catch$1
+
+    // 下载链接配置（支持自定义域名和 GitHub 备用）
+    var DOWNLOAD_CONFIG = {
+        primaryDomain: 'https://onlyforus.online',
+        fallbackDomain: 'https://raw.githubusercontent.com/zyf-coder/classic-fc-games/main',
+        apkPath: '/classic-fc-games.apk'
+    };
+    
+    function getDownloadUrl() {
+        return DOWNLOAD_CONFIG.primaryDomain + DOWNLOAD_CONFIG.apkPath;
+    }
+    
+    function getGithubDownloadUrl() {
+        return DOWNLOAD_CONFIG.fallbackDomain + DOWNLOAD_CONFIG.apkPath;
+    }});
         
         setGameOrientation('portrait');
         
@@ -456,7 +561,22 @@ u: 'KEY_SELECT', i: 'KEY_START'
         if (!header) return;
         header.classList.add('visible');
         clearTimeout(gameHeaderTimer);
-        gameHeaderTimer = setTimeout(function() {
+        gameHeaderTimer = setTimeout$1
+
+    // 下载链接配置（支持自定义域名和 GitHub 备用）
+    var DOWNLOAD_CONFIG = {
+        primaryDomain: 'https://onlyforus.online',
+        fallbackDomain: 'https://raw.githubusercontent.com/zyf-coder/classic-fc-games/main',
+        apkPath: '/classic-fc-games.apk'
+    };
+    
+    function getDownloadUrl() {
+        return DOWNLOAD_CONFIG.primaryDomain + DOWNLOAD_CONFIG.apkPath;
+    }
+    
+    function getGithubDownloadUrl() {
+        return DOWNLOAD_CONFIG.fallbackDomain + DOWNLOAD_CONFIG.apkPath;
+    }
             header.classList.remove('visible');
         }, 1000);
     }
@@ -588,7 +708,22 @@ u: 'KEY_SELECT', i: 'KEY_START'
 
     function copyRoomId() {
         var id = document.getElementById('roomIdDisplay').textContent;
-        if (navigator.clipboard) navigator.clipboard.writeText(id).then(function() { showMessage('已复制', 'success'); });
+        if (navigator.clipboard) navigator.clipboard.writeText(id).then$1
+
+    // 下载链接配置（支持自定义域名和 GitHub 备用）
+    var DOWNLOAD_CONFIG = {
+        primaryDomain: 'https://onlyforus.online',
+        fallbackDomain: 'https://raw.githubusercontent.com/zyf-coder/classic-fc-games/main',
+        apkPath: '/classic-fc-games.apk'
+    };
+    
+    function getDownloadUrl() {
+        return DOWNLOAD_CONFIG.primaryDomain + DOWNLOAD_CONFIG.apkPath;
+    }
+    
+    function getGithubDownloadUrl() {
+        return DOWNLOAD_CONFIG.fallbackDomain + DOWNLOAD_CONFIG.apkPath;
+    } showMessage('已复制', 'success'); });
         else showMessage('房间号: ' + id, 'info');
     }
 
@@ -673,7 +808,22 @@ u: 'KEY_SELECT', i: 'KEY_START'
         };
         voicePeer.ontrack = function(e) {
             var audio = document.getElementById('remoteVoiceAudio');
-            if (audio) { audio.srcObject = e.streams[0]; audio.play().catch(function() {}); }
+            if (audio) { audio.srcObject = e.streams[0]; audio.play().catch$1
+
+    // 下载链接配置（支持自定义域名和 GitHub 备用）
+    var DOWNLOAD_CONFIG = {
+        primaryDomain: 'https://onlyforus.online',
+        fallbackDomain: 'https://raw.githubusercontent.com/zyf-coder/classic-fc-games/main',
+        apkPath: '/classic-fc-games.apk'
+    };
+    
+    function getDownloadUrl() {
+        return DOWNLOAD_CONFIG.primaryDomain + DOWNLOAD_CONFIG.apkPath;
+    }
+    
+    function getGithubDownloadUrl() {
+        return DOWNLOAD_CONFIG.fallbackDomain + DOWNLOAD_CONFIG.apkPath;
+    }}); }
         };
         voicePeer.onconnectionstatechange = function() {
             if (voicePeer && voicePeer.connectionState === 'connected') showMessage('语音通话已连接', 'success');
@@ -773,7 +923,22 @@ u: 'KEY_SELECT', i: 'KEY_START'
                 }
                 if (hasUpdate) {
                     showMessage('发现新版本 v' + remote.version, 'warning');
-                    setTimeout(function() {
+                    setTimeout$1
+
+    // 下载链接配置（支持自定义域名和 GitHub 备用）
+    var DOWNLOAD_CONFIG = {
+        primaryDomain: 'https://onlyforus.online',
+        fallbackDomain: 'https://raw.githubusercontent.com/zyf-coder/classic-fc-games/main',
+        apkPath: '/classic-fc-games.apk'
+    };
+    
+    function getDownloadUrl() {
+        return DOWNLOAD_CONFIG.primaryDomain + DOWNLOAD_CONFIG.apkPath;
+    }
+    
+    function getGithubDownloadUrl() {
+        return DOWNLOAD_CONFIG.fallbackDomain + DOWNLOAD_CONFIG.apkPath;
+    }
                         if (confirm('发现新版本 v' + remote.version + '，是否下载？')) {
                             window.open('https://raw.githubusercontent.com/zyf-coder/classic-fc-games/main/classic-fc-games.apk');
                         }
@@ -782,12 +947,29 @@ u: 'KEY_SELECT', i: 'KEY_START'
                     showMessage('当前已是最新版本', 'success');
                 }
             })
-            .catch(function() { showMessage('检查更新失败', 'error'); });
+            .catch$1
+
+    // 下载链接配置（支持自定义域名和 GitHub 备用）
+    var DOWNLOAD_CONFIG = {
+        primaryDomain: 'https://onlyforus.online',
+        fallbackDomain: 'https://raw.githubusercontent.com/zyf-coder/classic-fc-games/main',
+        apkPath: '/classic-fc-games.apk'
+    };
+    
+    function getDownloadUrl() {
+        return DOWNLOAD_CONFIG.primaryDomain + DOWNLOAD_CONFIG.apkPath;
+    }
+    
+    function getGithubDownloadUrl() {
+        return DOWNLOAD_CONFIG.fallbackDomain + DOWNLOAD_CONFIG.apkPath;
+    } showMessage('检查更新失败', 'error'); });
     }
 
     function show(id) { document.getElementById(id).classList.add('visible'); }
     function hide(id) { document.getElementById(id).classList.remove('visible'); }
 })();
+
+
 
 
 

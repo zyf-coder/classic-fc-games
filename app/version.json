@@ -1,6 +1,7 @@
 {
-  "version": "1.7.10",
-  "versionCode": 43,
-  "downloadUrl": "https://raw.githubusercontent.com/zyf-coder/classic-fc-games/main/classic-fc-games.apk",
-  "notes": "更新 Windows 桌面图标"
+  "version": "1.7.11",
+  "versionCode": 44,
+  "downloadUrl": "https://onlyforus.online/classic-fc-games.apk",
+  "githubDownloadUrl": "https://raw.githubusercontent.com/zyf-coder/classic-fc-games/main/classic-fc-games.apk",
+  "notes": "支持自定义域名 onlyforus.online 访问"
 }

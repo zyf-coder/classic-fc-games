@@ -1,6 +1,6 @@
 {
   "name": "classic-fc-games",
-  "version": "1.7.10",
+  "version": "1.7.11",
   "private": true,
   "scripts": {
     "android:sync": "cap sync android",
@@ -22,7 +22,7 @@
     "appId": "com.classicfc.games.desktop",
     "productName": "经典怀旧游戏",
     "directories": {
-      "output": "dist-windows-v1710",
+      "output": "dist-windows-v1711",
       "buildResources": "build"
     },
     "files": [
@@ -48,3 +48,5 @@
     }
   }
 }
+
+
