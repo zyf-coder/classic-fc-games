@@ -1,4 +1,4 @@
-const CACHE_NAME = 'classic-fc-games-v8';
+const CACHE_NAME = 'classic-fc-games-v9';
 const urlsToCache = [
     './',
     './index.html',
@@ -65,3 +65,4 @@ self.addEventListener('fetch', event => {
             })
     );
 });
+
