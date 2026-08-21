@@ -79,7 +79,8 @@
         document.documentElement.classList.add('desktop-app');
         var keyMap = {
             w: 'KEY_UP', s: 'KEY_DOWN', a: 'KEY_LEFT', d: 'KEY_RIGHT',
-            j: 'KEY_A', k: 'KEY_B'
+j: 'KEY_A', k: 'KEY_B',
+u: 'KEY_SELECT', i: 'KEY_START'
         };
         function handleKey(event, value) {
             if (!document.getElementById('gamePage')?.classList.contains('active')) return;
@@ -783,6 +784,7 @@
     function show(id) { document.getElementById(id).classList.add('visible'); }
     function hide(id) { document.getElementById(id).classList.remove('visible'); }
 })();
+
 
 
 
