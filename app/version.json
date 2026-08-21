@@ -1,6 +1,6 @@
 {
-  "version": "1.7.9",
-  "versionCode": 42,
+  "version": "1.7.10",
+  "versionCode": 43,
   "downloadUrl": "https://raw.githubusercontent.com/zyf-coder/classic-fc-games/main/classic-fc-games.apk",
-  "notes": "新增 Windows 安装版并优化桌面键盘操作"
+  "notes": "更新 Windows 桌面图标"
 }
