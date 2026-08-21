@@ -36,7 +36,8 @@
         "nsis"
       ],
       "signAndEditExecutable": false,
-      "artifactName": "classic-fc-games-${version}-setup.${ext}"
+      "artifactName": "classic-fc-games-${version}-setup.${ext}",
+      "icon": "build/icon.ico"
     },
     "nsis": {
       "oneClick": false,
@@ -47,9 +48,3 @@
     }
   }
 }
-
-
-
-
-
-

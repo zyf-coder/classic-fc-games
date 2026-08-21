@@ -312,6 +312,8 @@ u: 'KEY_SELECT', i: 'KEY_START'
         
         document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
         document.getElementById('gamePage').classList.add('active');
+            var escHint = document.getElementById('escHint');
+            if (escHint) escHint.style.display = 'block';
         document.getElementById('gameTitle').textContent = game.name;
         document.getElementById('bottomTabs').style.display = 'none';
         
@@ -439,6 +441,8 @@ u: 'KEY_SELECT', i: 'KEY_START'
         setGameOrientation('portrait');
         
         showPage(onlineRoomId ? 'roomPage' : 'gameSelectPage');
+        var escHint = document.getElementById('escHint');
+        if (escHint) escHint.style.display = 'none';
     }
 
     function isRoomListVisible() {
@@ -784,6 +788,8 @@ u: 'KEY_SELECT', i: 'KEY_START'
     function show(id) { document.getElementById(id).classList.add('visible'); }
     function hide(id) { document.getElementById(id).classList.remove('visible'); }
 })();
+
+
 
 
 

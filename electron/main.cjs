@@ -1,4 +1,4 @@
-const { app, BrowserWindow, session, shell } = require('electron');
+const { app, BrowserWindow, session, shell, globalShortcut } = require('electron');
 const path = require('path');
 
 function createWindow() {
@@ -9,6 +9,7 @@ function createWindow() {
     minHeight: 640,
     backgroundColor: '#000000',
     autoHideMenuBar: true,
+    icon: path.join(__dirname, '..', 'build', 'icon.ico'),
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
@@ -20,6 +21,29 @@ function createWindow() {
   win.webContents.setWindowOpenHandler(({ url }) => {
     if (/^https?:/i.test(url)) shell.openExternal(url);
     return { action: 'deny' };
+  });
+
+  // ESC 键退出游戏（回到选择页面）
+  win.webContents.on('before-input-event', (event, input) => {
+    if (input.key === 'Escape' && input.type === 'keyDown') {
+      win.webContents.executeJavaScript(`
+        if (typeof goBack === 'function') {
+          goBack();
+        } else if (typeof exitGame === 'function') {
+          exitGame();
+        } else {
+          // 尝试点击退出按钮
+          var exitBtn = document.getElementById('exitBtn');
+          if (exitBtn) exitBtn.click();
+          // 或者回到游戏选择页面
+          var gameSelectPage = document.getElementById('gameSelectPage');
+          if (gameSelectPage) {
+            document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+            gameSelectPage.classList.add('active');
+          }
+        }
+      `);
+    }
   });
 }
 
