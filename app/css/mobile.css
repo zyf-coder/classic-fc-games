@@ -888,6 +888,19 @@ html, body {
     }
 }
 
+/* Windows Electron 版使用键盘操作，不显示两侧虚拟按键。 */
+.desktop-app #gamePage.active .dpad-area,
+.desktop-app #gamePage.active .right-controls,
+.desktop-app #gamePage.active .action-area,
+.desktop-app #gamePage.active .system-btns {
+    display: none !important;
+}
+
+.desktop-app #gamePage.active .game-screen-container {
+    left: 0;
+    right: 0;
+}
+
 /* v1.7.4 游戏控制布局 */
 #gamePage.active .game-header {
     display: flex;

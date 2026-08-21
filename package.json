@@ -1,16 +1,49 @@
 {
   "name": "classic-fc-games",
-  "version": "1.7.8",
+  "version": "1.7.9",
   "private": true,
   "scripts": {
     "android:sync": "cap sync android",
-    "android:build": "cap sync android && cd android && gradlew.bat assembleDebug"
+    "android:build": "cap sync android && cd android && gradlew.bat assembleDebug",
+    "windows:dev": "electron .",
+    "windows:build": "electron-builder --win nsis"
   },
   "dependencies": {
     "@capacitor/android": "6.2.1",
     "@capacitor/core": "6.2.1"
   },
   "devDependencies": {
-    "@capacitor/cli": "6.2.1"
+    "@capacitor/cli": "6.2.1",
+    "electron": "^31.7.7",
+    "electron-builder": "^24.13.3"
+  },
+  "main": "electron/main.cjs",
+  "build": {
+    "appId": "com.classicfc.games.desktop",
+    "productName": "经典怀旧游戏",
+    "directories": {
+      "output": "dist-windows-v179",
+      "buildResources": "build"
+    },
+    "files": [
+      "electron/**/*",
+      "app/**/*",
+      "package.json"
+    ],
+    "asar": true,
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "signAndEditExecutable": false,
+      "artifactName": "classic-fc-games-${version}-setup.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "经典怀旧游戏"
+    }
   }
 }

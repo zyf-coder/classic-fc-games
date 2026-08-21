@@ -1,8 +1,8 @@
 /**
- * 移动端应用 v1.7.8
+ * 移动端应用 v1.7.9
  */
 (function() {
-    var APP_VERSION = '1.7.8';
+    var APP_VERSION = '1.7.9';
     var GAMES = [
         { name: '超级玛丽', file: 'Super Mario Bros. (JU) (PRG0) [!].nes', icon: '🍄' },
         { name: '魂斗罗', file: 'hun.nes', icon: '🔫' },
@@ -66,12 +66,36 @@
 
     // 初始化
     document.addEventListener('DOMContentLoaded', function() {
+        initDesktopControls();
         initGameGrid();
         initEvents();
         initDpad();
         initOnline();
         initBgm();
     });
+
+    function initDesktopControls() {
+        if (!/Electron/i.test(navigator.userAgent)) return;
+        document.documentElement.classList.add('desktop-app');
+        var keyMap = {
+            w: 'KEY_UP', s: 'KEY_DOWN', a: 'KEY_LEFT', d: 'KEY_RIGHT',
+            j: 'KEY_A', k: 'KEY_B'
+        };
+        function handleKey(event, value) {
+            if (!document.getElementById('gamePage')?.classList.contains('active')) return;
+            if (event.target && /input|textarea|select/i.test(event.target.tagName)) return;
+            var keyName = keyMap[String(event.key || '').toLowerCase()];
+            if (!keyName) return;
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            setGameInput(keyName, value);
+        }
+        window.addEventListener('keydown', function(event) { handleKey(event, 0x41); }, true);
+        window.addEventListener('keyup', function(event) { handleKey(event, 0x40); }, true);
+        window.addEventListener('blur', function() {
+            Object.keys(keyMap).forEach(function(key) { setGameInput(keyMap[key], 0x40); });
+        });
+    }
 
     function initGameGrid() {
         var grid = document.getElementById('gameGrid');

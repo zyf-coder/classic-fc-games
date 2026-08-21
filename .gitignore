@@ -12,6 +12,7 @@ node20.zip
 
 # Build outputs
 dist/
+dist-windows*/
 build/
 *.apk
 *.aab
