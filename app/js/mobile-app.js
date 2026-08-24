@@ -256,12 +256,11 @@ u: 'KEY_SELECT', i: 'KEY_START'
     }
 
     function initOnline() {
-        if (typeof SupabaseMultiplayer === 'undefined') return;
-        
-        onlineMultiplayer = new SupabaseMultiplayer(
-            'https://mmkptnjivwnuodzbyjuy.supabase.co',
-            'sb_publishable_jmAUsKf5jAksds6fpIEaVQ_I8c3SNci'
-        );
+        if (typeof OnlineMultiplayer === 'undefined') return;
+        onlineMultiplayer = new OnlineMultiplayer();
+        onlineMultiplayer.connect(window.REALTIME_SERVER_URL || 'wss://ws.onlyforus.online').catch(function() {
+            showMessage('实时服务器连接失败', 'error');
+        });
         
         // 填充游戏选择
         var sel = document.getElementById('gameSelectOnline');

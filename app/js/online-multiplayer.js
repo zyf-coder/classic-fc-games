@@ -11,6 +11,9 @@ class OnlineMultiplayer {
         this.onPlayerInput = null;
         this.onPlayerJoined = null;
         this.onPlayerLeft = null;
+        this.onChatMessage = null;
+        this.onGameStart = null;
+        this.onVoiceSignal = null;
         this.onError = null;
         this.reconnectAttempts = 0;
         this.maxReconnectAttempts = 5;
@@ -81,6 +84,18 @@ class OnlineMultiplayer {
             case 'player_left':
                 if (this.onPlayerLeft) this.onPlayerLeft(message);
                 break;
+            case 'host_left':
+                if (this.onPlayerLeft) this.onPlayerLeft(message);
+                break;
+            case 'chat':
+                if (this.onChatMessage) this.onChatMessage(message);
+                break;
+            case 'game_start':
+                if (this.onGameStart) this.onGameStart(message);
+                break;
+            case 'voice_signal':
+                if (this.onVoiceSignal) this.onVoiceSignal(message.signal, message.fromPlayer);
+                break;
                 
             case 'game_state':
                 if (this.onStateUpdate) this.onStateUpdate(message.state, message.fromPlayer);
@@ -138,6 +153,27 @@ class OnlineMultiplayer {
             type: 'player_input',
             input: input
         });
+    }
+
+    sendInput(input) { this.sendPlayerInput(input); }
+
+    sendChatMessage(message) {
+        if (this.isConnected) this.send({ type: 'chat', message });
+    }
+
+    sendGameStart(game) {
+        if (this.isConnected) this.send({ type: 'game_start', game });
+    }
+
+    sendVoiceSignal(signal) {
+        if (this.isConnected) this.send({ type: 'voice_signal', signal });
+    }
+
+    async getRoomList() {
+        try {
+            const response = await fetch(window.REALTIME_HTTP_URL || 'https://ws.onlyforus.online/rooms', { cache: 'no-store' });
+            return response.ok ? await response.json() : [];
+        } catch (e) { return []; }
     }
 
     // 发送消息
